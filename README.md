@@ -156,6 +156,3 @@ echo "✓ terminado — reboot"
 - Restaurar mundo: abrir mcpelauncher una vez, luego
   `tar -xzf mc-worlds-respaldo-*.tar.gz -C ~/.var/app/io.mrarm.mcpelauncher/data/mcpelauncher/games/com.mojang/minecraftWorlds/`
 - Mover repo: `sudo mv /etc/horus-nix ~/horus-nix && sudo chown -R kyu:users ~/horus-nix`
-
-### Pendientes post-metal
-Secure Boot (sbctl), GTA V Steam + BattlEye block.
