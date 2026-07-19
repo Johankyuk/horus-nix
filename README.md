@@ -101,3 +101,61 @@ horus.apps.gaming.enable = false;   # sin Steam/MangoHud/Heroic
 ```
 
 Categorías: `dev`, `office`, `virt`, `gaming`, `media`, `files`, `zen`, `toys`, `desktopExtra`. Un futuro wizard de instalación solo genera un archivo de toggles — nada más.
+
+---
+
+## Instalación en metal (disco completo, TUF A16) / Bare-metal install
+
+> ES only — runbook operativo. English readers: this is the operator's install runbook.
+
+### 0. Antes de apagar CachyOS
+- [ ] Respaldo de minecraftWorlds (mcpelauncher) copiado a USB/nube
+- [ ] Secure Boot DESACTIVADO en BIOS (sbctl viene después)
+- [ ] ISO gráfica de NixOS (GNOME) en USB — solo es el entorno vivo, el sistema final sale del flake
+
+### 1. Bootear ISO → conectar wifi (GUI) → terminal → `sudo -i`
+
+### 2. Particionado (BORRA TODO EL DISCO)
+```bash
+DISK=/dev/nvme0n1   # verificar con: lsblk -d
+lsblk "$DISK" && read -rp "¿Borrar $DISK completo? (escribe SI): " ok && [ "$ok" = "SI" ]
+RAM=$(free -g | awk '/Mem/{print $2+1}'); SWAP=$((RAM+4))
+wipefs -af "$DISK"
+parted -s "$DISK" mklabel gpt \
+  mkpart ESP fat32 1MiB 1025MiB set 1 esp on \
+  mkpart swap linux-swap 1025MiB "$((1025+SWAP*1024))MiB" \
+  mkpart root btrfs "$((1025+SWAP*1024))MiB" 100%
+mkfs.fat -F32 -n HORUS-ESP "${DISK}p1"
+mkswap -L HORUS-SWAP "${DISK}p2" && swapon "${DISK}p2"
+mkfs.btrfs -f -L HORUS-ROOT "${DISK}p3"
+mount "${DISK}p3" /mnt
+btrfs subvolume create /mnt/@ && btrfs subvolume create /mnt/@home
+umount /mnt
+mount -o subvol=@,compress=zstd:3,noatime "${DISK}p3" /mnt
+mkdir -p /mnt/home /mnt/boot
+mount -o subvol=@home,compress=zstd:3,noatime "${DISK}p3" /mnt/home
+mount "${DISK}p1" /mnt/boot
+echo "✓ terminado"
+```
+
+### 3. Config + instalación
+```bash
+nixos-generate-config --root /mnt
+nix-shell -p git --run "git clone https://github.com/Johankyuk/horus-nix.git /mnt/etc/horus-nix"
+cp /mnt/etc/nixos/hardware-configuration.nix /mnt/etc/horus-nix/
+cd /mnt/etc/horus-nix && nix-shell -p git --run "git add hardware-configuration.nix"
+nixos-install --flake /mnt/etc/horus-nix#horus-metal
+echo "✓ terminado — reboot"
+```
+**Crítico:** el `git add` del hardware-configuration es obligatorio — los flakes ignoran archivos sin trackear y el install fallaría con el placeholder.
+
+### 4. Post-boot (primer arranque)
+- Login `kyu` con la contraseña real (hash ya en el repo)
+- El bootstrap clona Horus-Project; `horus-flatpak` instala Sober y mcpelauncher (necesita red)
+- Verificar: script de verificación de VM + `swapon --show` + `cat /sys/power/resume` no vacío
+- Restaurar mundo: abrir mcpelauncher una vez, luego
+  `tar -xzf mc-worlds-respaldo-*.tar.gz -C ~/.var/app/io.mrarm.mcpelauncher/data/mcpelauncher/games/com.mojang/minecraftWorlds/`
+- Mover repo: `sudo mv /etc/horus-nix ~/horus-nix && sudo chown -R kyu:users ~/horus-nix`
+
+### Pendientes post-metal
+Secure Boot (sbctl), GTA V Steam + BattlEye block.
