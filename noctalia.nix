@@ -14,6 +14,20 @@ let
     pname = "noctalia-shell";
     version = "4.7.7-horus";
     src = noctalia-src;
+    # Toasts de perfil de energía en español + fix del icono (antes:
+    # horus-noctalia-es + hook de pacman en Arch; aquí horneado en el paquete).
+    # Icono: upstream deriva la clave del NOMBRE del perfil; con nombres
+    # traducidos la clave no existe y cae a la calavera -> getIcon() siempre.
+    postPatch = ''
+      F=Services/Power/PowerProfileService.qml
+      if [ -f "$F" ]; then
+        substituteInPlace "$F" \
+          --replace-warn 'profileName.toLowerCase().replace(" ", "")' 'root.getIcon()' \
+          --replace-warn 'return "Performance";' 'return "Rendimiento";' \
+          --replace-warn 'return "Balanced";' 'return "Equilibrado";' \
+          --replace-warn 'return "Power saver";' 'return "Ahorro de energía";'
+      fi
+    '';
     # Sin compilación: solo copiar la config QML al store
     installPhase = ''
       mkdir -p $out
