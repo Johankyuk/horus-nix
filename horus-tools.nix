@@ -25,4 +25,20 @@ let
 in
 {
   environment.systemPackages = [ horus-tools ];
+
+  # RGB del teclado con el color del tema ANTES de SDDM.
+  # Espera al ITE5570 (hasta 30s, patron cold-boot EC) y pinta una vez;
+  # en sesion, horus-kbd-fx toma el control.
+  systemd.services.horus-kbd-boot = {
+    description = "RGB del teclado antes del login";
+    wantedBy = [ "display-manager.service" ];
+    before = [ "display-manager.service" ];
+    path = [ horus-tools pkgs.coreutils pkgs.gnugrep ];
+    environment.HORUS_USER_HOME = "/home/kyu";
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    script = "exec horus-kbd-boot";
+  };
 }

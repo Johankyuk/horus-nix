@@ -23,4 +23,4 @@ done
 
 COLOR="8b45f7"   # fallback: Morado de marca
 [[ -f $COLOR_FILE ]] && COLOR=$(tr -d '#[:space:]' < "$COLOR_FILE")
-exec /usr/local/bin/horus-kbd-color "$COLOR"
+exec horus-kbd-color "$COLOR"
