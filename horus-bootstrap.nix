@@ -71,6 +71,11 @@ in
 
       # Copia solo lo ausente: no pisa lo que horus-theme rota
       cp -rn "$DEST/config/." "$HOME/.config/" 2>/dev/null || true
+
+      # fastfetch: su config vive en branding/, no en config/
+      mkdir -p "$HOME/.config/fastfetch"
+      [ -f "$HOME/.config/fastfetch/config.jsonc" ] || cp "$DEST/branding/config.jsonc" "$HOME/.config/fastfetch/config.jsonc"
+      [ -f "$HOME/.config/fastfetch/logo.txt" ] || cp "$DEST/branding/horus-ascii.txt" "$HOME/.config/fastfetch/logo.txt"
     '';
   };
 }

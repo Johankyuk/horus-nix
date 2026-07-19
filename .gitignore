@@ -2,3 +2,4 @@ horus.qcow2
 result
 *.bak
 *.bak.*
+run-vm-host.sh
