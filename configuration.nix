@@ -25,6 +25,17 @@
   time.timeZone = "America/Mexico_City";
   i18n.defaultLocale = "es_MX.UTF-8";
 
+  # Teclado latam: SDDM/Weston lo hereda de aqui; consola aparte
+  services.xserver.xkb.layout = "latam";
+  console.keyMap = "la-latin1";
+
+  # Fuentes: foot pide "monospace"; sin esto fontconfig no resuelve
+  fonts.packages = with pkgs; [
+    nerd-fonts.jetbrains-mono
+    dejavu_fonts
+    noto-fonts
+  ];
+
   # ===================================================================
   # GRÁFICOS — TUF A16: iGPU 780M + RTX 4050 en modo offload
   # Esto reemplaza tu configuración manual de PRIME y las 4 vars
