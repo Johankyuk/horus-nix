@@ -118,6 +118,12 @@
   # ===================================================================
   # USUARIO
   # ===================================================================
+  # Compat: foot.ini (y scripts del repo) esperan /bin/bash como en Arch
+  environment.binsh = "${pkgs.bash}/bin/bash";
+  system.activationScripts.binbash = ''
+    ln -sfn ${pkgs.bash}/bin/bash /bin/bash
+  '';
+
   users.mutableUsers = false;
 
   users.users.kyu = {
