@@ -76,6 +76,21 @@ in
       mkdir -p "$HOME/.config/fastfetch"
       [ -f "$HOME/.config/fastfetch/config.jsonc" ] || cp "$DEST/branding/config.jsonc" "$HOME/.config/fastfetch/config.jsonc"
       [ -f "$HOME/.config/fastfetch/logo.txt" ] || cp "$DEST/branding/horus-ascii.txt" "$HOME/.config/fastfetch/logo.txt"
+      # Prompt minimalista (marca idempotente, igual que sec_generables en Arch)
+      if ! grep -q '# horus-prompt' "$HOME/.bashrc" 2>/dev/null; then
+        printf '\n# horus-prompt\nPS1=""\n' >> "$HOME/.bashrc"
+      fi
+      # Lanzadores .desktop de los wizards (100% generados: se sobreescriben)
+      APPS="$HOME/.local/share/applications"
+      mkdir -p "$APPS"
+      SW=/run/current-system/sw/bin
+      gen_desktop() {  # $1=id $2=nombre $3=exec
+        printf '[Desktop Entry]\nType=Application\nName=%s\nComment=Asistente Horus\nExec=%s\nIcon=preferences-system\nTerminal=false\nCategories=Settings;Utility;\n' \
+          "$2" "$3" > "$APPS/horus-$1.desktop"
+      }
+      [ -x "$SW/horus-theme" ]   && gen_desktop tema       "Horus Tema"       "foot -e $SW/horus-theme"
+      [ -x "$SW/horus-privacy" ] && gen_desktop privacidad "Horus Privacidad" "foot -e $SW/horus-privacy"
+      [ -x "$SW/horus-estado" ]  && gen_desktop estado     "Horus Estado"     "foot -e bash -c \"$SW/horus-estado; read -rsn1\""
     '';
   };
 }
