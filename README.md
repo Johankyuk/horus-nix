@@ -26,7 +26,7 @@ Login: `kyu` / `horus`.
 
 ## Install on metal
 
-Full flow in [docs-instalacion-metal.md](docs-instalacion-metal.md): boot the NixOS ISO, generate `hardware-configuration.nix`, clone this repo, `nixos-install --flake .#horus-metal`.
+Full flow in [la guía al final de este README](#instalación-en-metal-disco-completo-tuf-a16): boot the NixOS ISO, generate `hardware-configuration.nix`, clone this repo, `nixos-install --flake .#horus-metal`.
 
 ## Layout
 
@@ -79,7 +79,7 @@ Login: `kyu` / `horus`.
 
 ## Instalar en metal
 
-Flujo completo en [docs-instalacion-metal.md](docs-instalacion-metal.md): ISO de NixOS, generar `hardware-configuration.nix`, clonar este repo, `nixos-install --flake .#horus-metal`.
+Flujo completo en [la guía al final de este README](#instalación-en-metal-disco-completo-tuf-a16): ISO de NixOS, generar `hardware-configuration.nix`, clonar este repo, `nixos-install --flake .#horus-metal`.
 
 ## Estructura
 
