@@ -21,4 +21,9 @@
   };
   # Hibernación — swap por label (creado en el particionado del README)
   boot.resumeDevice = "/dev/disk/by-label/HORUS-SWAP";
+  # kyu necesita el grupo input para hidraw (RGB ITE5570)
+  users.users.kyu.extraGroups = [ "input" ];
+  # Batería y perfiles de energía — Noctalia (UPower) y horus-power (PPD)
+  services.upower.enable = true;
+  services.power-profiles-daemon.enable = true;
 }
