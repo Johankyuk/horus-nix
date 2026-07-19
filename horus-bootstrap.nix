@@ -6,8 +6,8 @@ let
   horus-seed-src = pkgs.fetchFromGitHub {
     owner = "Johankyuk";
     repo = "Horus-Project";
-    rev = "2ba844f790d4f455bf0edb2969b0351dc1500a1e";
-    hash = "sha256-tj/ktwOcblsResgtV3AgmPM/EBOSNDQxKcEGlp+eM7s=";
+    rev = "73cd20bda5855cd7a79f58d392340ce8112b8fcd";
+    hash = "";
   };
 in
 {
