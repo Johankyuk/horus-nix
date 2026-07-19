@@ -48,7 +48,7 @@ in
     wantedBy = [ "graphical-session.target" ];
     partOf = [ "graphical-session.target" ];
     after = [ "graphical-session.target" ];
-    path = [ horus-tools pkgs.coreutils pkgs.gnugrep pkgs.systemd pkgs.dbus ];
+    path = [ horus-tools pkgs.coreutils pkgs.gnugrep pkgs.systemd pkgs.dbus pkgs.power-profiles-daemon ];
     serviceConfig = { Restart = "on-failure"; RestartSec = "5s"; };
     script = "exec horus-gpu-watch";
   };

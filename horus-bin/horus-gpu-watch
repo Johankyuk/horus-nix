@@ -6,11 +6,23 @@ set -u
 VARS=(__NV_PRIME_RENDER_OFFLOAD __GLX_VENDOR_LIBRARY_NAME __VK_LAYER_NV_optimus DRI_PRIME)
 _hay_dgpu(){ grep -q 0x10de /sys/bus/pci/devices/*/vendor 2>/dev/null; }
 estado=""
+fuente=""
 _en_ac(){ for p in /sys/class/power_supply/*/online; do
     [ -r "$p" ] && [ "$(cat "$p" 2>/dev/null)" = "1" ] && return 0; done; return 1; }
 while true; do
   prof=$(cat /sys/firmware/acpi/platform_profile 2>/dev/null)
-  if _en_ac && _hay_dgpu; then nuevo="dgpu"; else nuevo="igpu"; fi
+  if _en_ac; then f="ac"; else f="bat"; fi
+  # CPU: perfil PPD segun fuente (amd_pstate + platform_profile/EC baja el
+  # envelope de watts del Ryzen). Solo en el CAMBIO ac<->bateria: la eleccion
+  # manual (Noctalia/horus-power) sobrevive hasta el proximo (des)enchufe.
+  if [ "$f" != "$fuente" ]; then
+    if command -v powerprofilesctl >/dev/null; then
+      if [ "$f" = "ac" ]; then powerprofilesctl set balanced
+      else powerprofilesctl set power-saver; fi
+    fi
+    fuente="$f"
+  fi
+  if [ "$f" = "ac" ] && _hay_dgpu; then nuevo="dgpu"; else nuevo="igpu"; fi
   if [ "$nuevo" != "$estado" ]; then
     if [ "$nuevo" = "dgpu" ]; then
       systemctl --user set-environment __NV_PRIME_RENDER_OFFLOAD=1 \
