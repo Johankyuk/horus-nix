@@ -142,10 +142,10 @@
     isNormalUser = true;
     extraGroups = [ "wheel" "networkmanager" "video" ];
     shell = pkgs.bash;
-    hashedPassword = "$6$K0g9Hj7.61uWCCgC$fc2OrvD3qqBt2BQwztiKCTnnschR0AuoIfCLv7wJRl7f0QoXdB2SWztK2hhBoCs6u9HKpJonXk.qrhYQZ0BQm1";
+    hashedPassword = "$6$6/kkeSZCW6DEn.qw$PlK5PWqW/XndDhTw8F2d3mlT1rhTimcrgk8RevTHzgHUxtU/H612vwiS.fJQme48OlvBvzQAxRoqhYm7XA2PZ.";
   };
 
-  users.users.root.hashedPassword = "$6$K0g9Hj7.61uWCCgC$fc2OrvD3qqBt2BQwztiKCTnnschR0AuoIfCLv7wJRl7f0QoXdB2SWztK2hhBoCs6u9HKpJonXk.qrhYQZ0BQm1";
+  users.users.root.hashedPassword = "$6$6/kkeSZCW6DEn.qw$PlK5PWqW/XndDhTw8F2d3mlT1rhTimcrgk8RevTHzgHUxtU/H612vwiS.fJQme48OlvBvzQAxRoqhYm7XA2PZ.";
 
   # ===================================================================
   # PAQUETES — el equivalente a tus arrays de pacman en setup_master
