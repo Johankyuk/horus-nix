@@ -17,5 +17,16 @@
         ./configuration.nix
       ];
     };
+
+    # Target para hardware real: mismo sistema + hardware real + extras metal
+    nixosConfigurations.horus-metal = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      modules = [
+        chaotic.nixosModules.default
+        ./configuration.nix
+        ./hardware-configuration.nix
+        ./metal.nix
+      ];
+    };
   };
 }

@@ -1,9 +1,10 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   imports = [ ./noctalia.nix ./horus-tools.nix ./horus-bootstrap.nix
     ./sddm.nix
-    ./desktop-stack.nix ];
+    ./desktop-stack.nix
+    ./gtk.nix ];
 
   # Permitir paquetes no libres (driver NVIDIA)
   nixpkgs.config.allowUnfree = true;
@@ -112,7 +113,7 @@
   programs.steam.enable = true;
   programs.gamescope.enable = true;
 
-  services.flatpak.enable = true;   # Sober, Trinity, Greenlight
+  services.flatpak.enable = true;   # apps (Sober, mcpelauncher) en metal.nix
 
   # ===================================================================
   # USUARIO
@@ -123,10 +124,10 @@
     isNormalUser = true;
     extraGroups = [ "wheel" "networkmanager" "video" ];
     shell = pkgs.bash;
-    password = "horus";
+    hashedPassword = "$6$K0g9Hj7.61uWCCgC$fc2OrvD3qqBt2BQwztiKCTnnschR0AuoIfCLv7wJRl7f0QoXdB2SWztK2hhBoCs6u9HKpJonXk.qrhYQZ0BQm1";
   };
 
-  users.users.root.password = "horus";
+  users.users.root.hashedPassword = "$6$K0g9Hj7.61uWCCgC$fc2OrvD3qqBt2BQwztiKCTnnschR0AuoIfCLv7wJRl7f0QoXdB2SWztK2hhBoCs6u9HKpJonXk.qrhYQZ0BQm1";
 
   # ===================================================================
   # PAQUETES — el equivalente a tus arrays de pacman en setup_master
@@ -164,8 +165,8 @@
   # ===================================================================
   # NUNCA CAMBIAR después de la primera instalación
   # ===================================================================
-  # Relleno para evaluación/VM — en instalación real lo genera el instalador
-  fileSystems."/" = {
+  # mkDefault: en metal lo pisa hardware-configuration.nix generado al instalar
+  fileSystems."/" = lib.mkDefault {
     device = "/dev/disk/by-label/nixos";
     fsType = "ext4";
   };
