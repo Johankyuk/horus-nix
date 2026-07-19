@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Rebuild de la VM + regeneracion de run-vm-host.sh (qemu del host)
+set -eu
+cd ~/horus-nix
+
+nix build .#nixosConfigurations.horus.config.system.build.vm
+
+# install derreferencia el store y fija permisos de una vez
+rm -f run-vm-host.sh
+install -m 755 "$(readlink -f result/bin/run-horus-vm)" run-vm-host.sh
+sed -i 's|exec /nix/store/[^ ]*/bin/qemu-system-x86_64|exec /usr/bin/qemu-system-x86_64|' run-vm-host.sh
+
+# Guard: si el sed no aplico, mejor fallar ruidoso que bootear mal
+grep -q 'exec /usr/bin/qemu-system-x86_64' run-vm-host.sh \
+  || { echo "ERROR: run-vm-host.sh sigue con qemu de Nix"; exit 1; }
+echo "✓ terminado"
