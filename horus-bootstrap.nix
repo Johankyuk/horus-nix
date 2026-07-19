@@ -7,7 +7,7 @@ let
     owner = "Johankyuk";
     repo = "Horus-Project";
     rev = "73cd20bda5855cd7a79f58d392340ce8112b8fcd";
-    hash = "";
+    hash = "sha256-PmVXGYRXOQkXNwCeCDepJUj07SU1mZXTjGLEnNp8OYE=";
   };
 in
 {
