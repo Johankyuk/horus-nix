@@ -22,7 +22,7 @@ It's a personal setup, kept public as a reference.
 ./vm-run.sh       # boots it (virtio-gpu with GL)
 ```
 
-Login: `kyu` / `horus`.
+Login: `kyu` (contraseña = hash de `configuration.nix`; cámbialo antes de tu build).
 
 ## Install on metal
 
@@ -75,7 +75,7 @@ Es un setup personal, público como referencia.
 ./vm-run.sh       # arranca (virtio-gpu con GL)
 ```
 
-Login: `kyu` / `horus`.
+Login: `kyu` (contraseña = hash de `configuration.nix`; cámbialo antes de tu build).
 
 ## Instalar en metal
 
