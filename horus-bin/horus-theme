@@ -20,17 +20,17 @@ def _localizar_repo():
               os.path.expanduser("~/.config/horus/repo"),
               os.path.expanduser("~/Horus-Project"),
               os.path.expanduser("~/Horus-Core")):
-        if c and os.path.isfile(os.path.join(c, "horus_themes.py")):
+        if c and os.path.isfile(os.path.join(c, "Wallpapers", "base.svg")):
             return os.path.abspath(c)
     # fallback: junto a este script
     here = os.path.dirname(os.path.abspath(__file__))
     for c in (here, os.path.dirname(here)):
-        if os.path.isfile(os.path.join(c, "horus_themes.py")):
+        if os.path.isfile(os.path.join(c, "Wallpapers", "base.svg")):
             return c
-    sys.exit("[err] No encuentro horus_themes.py (define HORUS_DIR).")
+    sys.exit("[err] No encuentro el repo de contenido Horus-Project (define HORUS_DIR).")
 
 REPO = _localizar_repo()
-sys.path.insert(0, REPO)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # motor junto al script
 import horus_themes as kt
 
 # ── Resolución tolerante de nombres de tema ──────────────────

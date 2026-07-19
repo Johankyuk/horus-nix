@@ -76,7 +76,7 @@ case "${1:-}" in
   --all)
     python3 - << 'PY' | while read -r tema color; do
 import sys, os
-sys.path.insert(0, os.environ.get("HORUS_DIR", os.path.expanduser("~/Horus-Core")))
+sys.path.insert(0, "/run/current-system/sw/bin")  # motor instalado por horus-tools
 import horus_themes as kt
 for t in kt.lista_temas():
     print(t.lower().replace(" ", "_"), kt.rotar_hex("#7a2be8", t))
