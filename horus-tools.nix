@@ -24,7 +24,7 @@ let
 
 in
 {
-  environment.systemPackages = [ horus-tools ];
+  environment.systemPackages = [ horus-tools pkgs.pciutils pkgs.psmisc ];
 
   # RGB del teclado con el color del tema ANTES de SDDM.
   # Espera al ITE5570 (hasta 30s, patron cold-boot EC) y pinta una vez;
@@ -40,5 +40,16 @@ in
       RemainAfterExit = true;
     };
     script = "exec horus-kbd-boot";
+  };
+  # Vigilante PRIME: en AC toda app nueva nace en la dGPU; en bateria, iGPU.
+  # Guard interno: si no hay NVIDIA enumerada (dgpu_disable), se queda en iGPU.
+  systemd.user.services.horus-gpu-watch = {
+    description = "Vigilante de perfil GPU (PRIME por AC/bateria)";
+    wantedBy = [ "graphical-session.target" ];
+    partOf = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" ];
+    path = [ horus-tools pkgs.coreutils pkgs.gnugrep pkgs.systemd pkgs.dbus ];
+    serviceConfig = { Restart = "on-failure"; RestartSec = "5s"; };
+    script = "exec horus-gpu-watch";
   };
 }
