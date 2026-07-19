@@ -2,7 +2,8 @@
 
 {
   imports = [ ./noctalia.nix ./horus-tools.nix ./horus-bootstrap.nix
-    ./sddm.nix ];
+    ./sddm.nix
+    ./desktop-stack.nix ];
 
   # Permitir paquetes no libres (driver NVIDIA)
   nixpkgs.config.allowUnfree = true;

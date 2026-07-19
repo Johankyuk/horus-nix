@@ -3,6 +3,9 @@
 set -eu
 cd ~/horus-nix
 
+# Flakes solo ven archivos trackeados: staging automatico (commits siguen manuales)
+git add -A
+
 nix build .#nixosConfigurations.horus.config.system.build.vm
 
 # install derreferencia el store y fija permisos de una vez
