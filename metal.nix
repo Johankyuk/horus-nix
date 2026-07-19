@@ -19,4 +19,6 @@
         org.vinegarhq.Sober io.mrarm.mcpelauncher || true
     '';
   };
+  # Hibernación — swap por label (creado en el particionado del README)
+  boot.resumeDevice = "/dev/disk/by-label/HORUS-SWAP";
 }
