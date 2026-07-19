@@ -141,10 +141,10 @@ echo "✓ terminado"
 ### 3. Config + instalación
 ```bash
 nixos-generate-config --root /mnt
-nix-shell -p git --run "git clone https://github.com/Johankyuk/horus-nix.git /mnt/etc/horus-nix"
-cp /mnt/etc/nixos/hardware-configuration.nix /mnt/etc/horus-nix/
-cd /mnt/etc/horus-nix && nix-shell -p git --run "git add hardware-configuration.nix"
-nixos-install --flake /mnt/etc/horus-nix#horus-metal
+nix-shell -p git --run "git clone https://github.com/Johankyuk/horus-nix.git /mnt~/horus-nix"
+cp /mnt/etc/nixos/hardware-configuration.nix /mnt~/horus-nix/
+cd /mnt~/horus-nix && nix-shell -p git --run "git add hardware-configuration.nix"
+nixos-install --flake /mnt~/horus-nix#horus-metal
 echo "✓ terminado — reboot"
 ```
 **Crítico:** el `git add` del hardware-configuration es obligatorio — los flakes ignoran archivos sin trackear y el install fallaría con el placeholder.
@@ -155,4 +155,4 @@ echo "✓ terminado — reboot"
 - Verificar: script de verificación de VM + `swapon --show` + `cat /sys/power/resume` no vacío
 - Restaurar mundo: abrir mcpelauncher una vez, luego
   `tar -xzf mc-worlds-respaldo-*.tar.gz -C ~/.var/app/io.mrarm.mcpelauncher/data/mcpelauncher/games/com.mojang/minecraftWorlds/`
-- Mover repo: `sudo mv /etc/horus-nix ~/horus-nix && sudo chown -R kyu:users ~/horus-nix`
+- Mover repo: `sudo mv ~/horus-nix ~/horus-nix && sudo chown -R kyu:users ~/horus-nix`

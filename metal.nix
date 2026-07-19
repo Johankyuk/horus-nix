@@ -12,7 +12,7 @@
     wants = [ "network-online.target" ];
     after = [ "network-online.target" ];
     path = [ pkgs.flatpak ];
-    serviceConfig = { Type = "oneshot"; RemainAfterExit = true; };
+    serviceConfig = { Type = "oneshot"; RemainAfterExit = true; Restart = "on-failure"; RestartSec = "10s"; };
     script = ''
       flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo || exit 0
       flatpak install -y --noninteractive --user flathub \
