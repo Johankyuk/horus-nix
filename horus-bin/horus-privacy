@@ -35,28 +35,25 @@ DNSOverTLS=yes
 FallbackDNS=
 Domains=~.
 EOF
-  sudo systemctl enable --now systemd-resolved.service
+  sudo systemctl start systemd-resolved.service
   sudo ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
   sudo systemctl restart NetworkManager
 }
 
 dns_off() {
   sudo rm -f /etc/systemd/resolved.conf.d/horus-dot.conf
-  sudo systemctl disable --now systemd-resolved.service 2>/dev/null
+  sudo systemctl stop systemd-resolved.service 2>/dev/null
   sudo rm -f /etc/resolv.conf
   sudo systemctl restart NetworkManager   # NM regenera resolv.conf clásico (DNS del router)
 }
 
 fw_on() {
-  command -v ufw >/dev/null || sudo pacman -S --needed --noconfirm ufw
-  sudo ufw default deny incoming >/dev/null
-  sudo ufw default allow outgoing >/dev/null
-  sudo ufw --force enable >/dev/null
-  sudo systemctl enable ufw.service >/dev/null 2>&1 || true
+  # NixOS: firewall nativo (nftables) declarado en configuration.nix
+  sudo systemctl start firewall.service 2>/dev/null || true
 }
 
 fw_off() {
-  command -v ufw >/dev/null && sudo ufw --force disable >/dev/null || true
+  sudo systemctl stop firewall.service 2>/dev/null || true
 }
 
 mac_on() {
@@ -86,7 +83,7 @@ estado_real() {
     echo "  sin DoT (resolv.conf gestionado por NetworkManager)"
   fi
   echo "${M}Firewall:${R}"
-  if command -v ufw >/dev/null; then sudo ufw status | sed 's/^/  /'; else echo "  ufw no instalado"; fi
+  systemctl is-active firewall.service >/dev/null 2>&1 && echo "  firewall (nftables): activo" || echo "  firewall (nftables): detenido"
   echo "${M}MAC:${R}"
   [[ -f /etc/NetworkManager/conf.d/horus-mac.conf ]] && echo "  aleatorización activa (stable)" || echo "  MAC de hardware"
   echo
