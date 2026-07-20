@@ -17,14 +17,17 @@ perfil="$(cat /sys/firmware/acpi/platform_profile 2>/dev/null)" || exit 0
 case "${1:-}" in
   on)
     _en_ac || exit 0   # en batería: suicidio, no-op
-    _aplica "$perfil" "$CURVA_MAX"
+    # Máquina al máximo: perfil EC performance + CPU sin cap + fans a tope
+    powerprofilesctl set performance 2>/dev/null || true
+    /run/wrappers/bin/sudo -n /run/current-system/sw/bin/horus-cpu-cap ac >/dev/null 2>&1 || true
+    _aplica performance "$CURVA_MAX"
     ;;
   off)
-    case "$perfil" in
-      quiet)       _aplica quiet       "$CURVA_QUIET" ;;
-      balanced)    _aplica balanced    "$CURVA_BAL" ;;
-      performance) _aplica performance "$CURVA_PERF" ;;
-    esac
+    # Restaurar curvas estándar y volver al perfil normal de AC
+    _aplica quiet       "$CURVA_QUIET"
+    _aplica balanced    "$CURVA_BAL"
+    _aplica performance "$CURVA_PERF"
+    powerprofilesctl set balanced 2>/dev/null || true
     ;;
   *) echo "uso: horus-fans-max on|off" >&2; exit 1 ;;
 esac
