@@ -2,9 +2,16 @@
 
 **A better Noctalia for laptops.**
 
-NixOS flake que convierte una instalación limpia en un escritorio Niri + Noctalia completo, temado y consciente del hardware: gestión dual-GPU (iGPU/dGPU offload con apagado por firmware), hibernación funcional, límite de carga de batería, RGB del teclado antes del login, y un motor de temas OKLCH que recolorea todo el sistema —compositor, shell, terminal, SDDM, iconos, cursor, wallpaper y teclado— con un solo comando.
+[Español](#español) · [English](#english)
 
-## Instalación
+---
+
+<a name="español"></a>
+## Español
+
+Flake de NixOS que convierte una instalación limpia en un escritorio Niri + Noctalia completo, temado y consciente del hardware: gestión dual-GPU (offload iGPU/dGPU con apagado por firmware), hibernación funcional, límite de carga de batería, RGB del teclado antes del login, y un motor de temas OKLCH que recolorea todo el sistema —compositor, shell, terminal, SDDM, iconos, cursor, wallpaper y teclado— con un solo comando.
+
+### Instalación
 
 Desde un NixOS recién instalado (cualquier desktop base):
 
@@ -14,7 +21,7 @@ curl -L https://raw.githubusercontent.com/Johankyuk/horus-nix/main/bootstrap.sh 
 
 Reinicia. Listo.
 
-## Qué incluye
+### Qué incluye
 
 - **Niri + Noctalia** (v4, pineado) sobre Wayland, SDDM con tema sugar-dark recoloreable
 - **`horus-theme`**: 11 temas rotados en OKLCH; un comando repinta todo en vivo
@@ -24,7 +31,7 @@ Reinicia. Listo.
 - **Gaming**: Steam, gamescope, MangoHud temado, `horus-fsr`
 - **Boot silencioso** con branding Horus y generaciones limitadas
 
-## Estructura
+### Estructura
 
 | Archivo | Rol |
 |---|---|
@@ -37,3 +44,44 @@ Reinicia. Listo.
 El contenido (wallpapers, temas, branding) vive en [Horus-Project](https://github.com/Johankyuk/Horus-Project).
 
 Hardware de referencia: ASUS TUF Gaming A16 (Ryzen 8040 + Radeon 780M + RTX 4050).
+
+---
+
+<a name="english"></a>
+## English
+
+NixOS flake that turns a clean install into a complete, themed, hardware-aware Niri + Noctalia desktop: dual-GPU management (iGPU/dGPU offload with firmware power-off), working hibernation, battery charge limit, keyboard RGB before login, and an OKLCH theme engine that recolors the whole system —compositor, shell, terminal, SDDM, icons, cursor, wallpaper and keyboard— with a single command.
+
+### Install
+
+From a freshly installed NixOS (any base desktop):
+
+```bash
+curl -L https://raw.githubusercontent.com/Johankyuk/horus-nix/main/bootstrap.sh | bash
+```
+
+Reboot. Done.
+
+### What's included
+
+- **Niri + Noctalia** (v4, pinned) on Wayland, SDDM with a recolorable sugar-dark theme
+- **`horus-theme`**: 11 OKLCH-rotated themes; one command repaints everything live
+- **Dual GPU (AMD+NVIDIA laptops)**: declarative PRIME offload, `horus-gpu-watch` switches iGPU/dGPU and power profile on AC/battery, firmware-level dGPU power-off
+- **Laptop-first**: validated hibernation (ACPI wakeup fix included), 80% charge limit, power button → lockscreen, pre-SDDM RGB
+- **Declarative privacy**: DNS-over-TLS, firewall, MAC randomization
+- **Gaming**: Steam, gamescope, themed MangoHud, `horus-fsr`
+- **Silent boot** with Horus branding and limited generations
+
+### Layout
+
+| File | Role |
+|---|---|
+| `configuration.nix` | Base system, boot, graphics, privacy |
+| `metal.nix` | Real hardware (udev, hibernation, flatpaks) |
+| `sddm.nix` | SDDM theme with mutable background/colors |
+| `horus-bin/` | Tooling (`horus-theme`, `horus-gpu`, `horus-power`…) |
+| `bootstrap.sh` | One-command post-install |
+
+Content (wallpapers, themes, branding) lives in [Horus-Project](https://github.com/Johankyuk/Horus-Project).
+
+Reference hardware: ASUS TUF Gaming A16 (Ryzen 8040 + Radeon 780M + RTX 4050).
