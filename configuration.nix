@@ -214,6 +214,7 @@
   };
 
   services.upower.enable = true;
+  services.power-profiles-daemon.enable = true;  # PPD: perfiles quiet/balanced/performance (Noctalia y gpu-watch dependen de el)
 
   system.stateVersion = "25.05";
 }
