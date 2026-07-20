@@ -93,6 +93,7 @@ in
       [ -x "$SW/horus-theme" ]   && gen_desktop tema       "Horus Tema"       "foot -e $SW/horus-theme"
       [ -x "$SW/horus-privacy" ] && gen_desktop privacidad "Horus Privacidad" "foot -e $SW/horus-privacy"
       [ -x "$SW/horus-estado" ]  && gen_desktop estado     "Horus Estado"     "foot -e bash -c \"$SW/horus-estado; read -rsn1\""
+      [ -x "$SW/horus-update" ]  && gen_desktop update     "Horus Update"     "foot -e bash -c \"$SW/horus-update; read -rsn1\""
       # Ocultar .desktop de sistema en el launcher (override usuario, reversible)
       for _h in avahi-discover bssh bvnc qv4l2 qvidcap foot footclient foot-server \
                 qt6ct xarchiver btop micro vim nvim htop \
