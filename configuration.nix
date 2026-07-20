@@ -216,6 +216,7 @@
     '';
   };
 
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
   services.upower.enable = true;
   services.power-profiles-daemon.enable = true;  # PPD: perfiles quiet/balanced/performance (Noctalia y gpu-watch dependen de el)
 
