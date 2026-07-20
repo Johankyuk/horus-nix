@@ -20,6 +20,15 @@ while true; do
       if [ "$f" = "ac" ]; then powerprofilesctl set balanced
       else powerprofilesctl set power-saver; fi
     fi
+    # Watts del Ryzen: en bateria envelope bajo y seguro (evita apagones por
+    # pico de corriente); en AC, envelope completo de fabrica.
+    if command -v ryzenadj >/dev/null; then
+      if [ "$f" = "ac" ]; then
+        sudo -n ryzenadj --stapm-limit=45000 --slow-limit=54000 --fast-limit=65000 >/dev/null 2>&1
+      else
+        sudo -n ryzenadj --stapm-limit=15000 --slow-limit=18000 --fast-limit=25000 >/dev/null 2>&1
+      fi
+    fi
     fuente="$f"
   fi
   if [ "$f" = "ac" ] && _hay_dgpu; then nuevo="dgpu"; else nuevo="igpu"; fi
