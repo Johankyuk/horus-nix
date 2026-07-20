@@ -13,18 +13,15 @@ _aplica(){ # $1=perfil asusctl $2=curva
     asusctl fan-curve --mod-profile "$1" --fan gpu --data "$2" &>/dev/null
     asusctl fan-curve --mod-profile "$1" --enable-fan-curves true &>/dev/null
 }
-perfil="$(cat /sys/firmware/acpi/platform_profile 2>/dev/null)" || exit 0
 case "${1:-}" in
   on)
     _en_ac || exit 0   # en batería: suicidio, no-op
-    _aplica "$perfil" "$CURVA_MAX"
+    for p in quiet balanced performance; do _aplica "$p" "$CURVA_MAX"; done
     ;;
   off)
-    case "$perfil" in
-      quiet)       _aplica quiet       "$CURVA_QUIET" ;;
-      balanced)    _aplica balanced    "$CURVA_BAL" ;;
-      performance) _aplica performance "$CURVA_PERF" ;;
-    esac
+    _aplica quiet       "$CURVA_QUIET"
+    _aplica balanced    "$CURVA_BAL"
+    _aplica performance "$CURVA_PERF"
     ;;
   *) echo "uso: horus-fans-max on|off" >&2; exit 1 ;;
 esac
