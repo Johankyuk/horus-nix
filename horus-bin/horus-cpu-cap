@@ -1,18 +1,17 @@
 #!/usr/bin/env bash
 # horus-cpu-cap — envelope del CPU por fuente (Hawk Point: ryzenadj no soporta).
-# bat: boost off + cap 2.5GHz (~15-20W paquete, evita apagones por pico).
-# ac: boost on + frecuencia completa.
+# bat: cap 2.5GHz (~15-20W paquete, evita apagones por pico).
+# ac: frecuencia completa.
+# El boost lo gestiona power-profiles-daemon por perfil; NO tocarlo aqui (conflicto EINVAL).
 set -euo pipefail
 [[ $EUID -eq 0 ]] || { echo "requiere root" >&2; exit 1; }
 case "${1:-}" in
   bat)
-    echo 0 > /sys/devices/system/cpu/cpufreq/boost 2>/dev/null || true
     for p in /sys/devices/system/cpu/cpufreq/policy*/scaling_max_freq; do
       echo 2500000 > "$p"
     done
     ;;
   ac)
-    echo 1 > /sys/devices/system/cpu/cpufreq/boost 2>/dev/null || true
     for p in /sys/devices/system/cpu/cpufreq/policy*; do
       cat "$p/cpuinfo_max_freq" > "$p/scaling_max_freq"
     done
