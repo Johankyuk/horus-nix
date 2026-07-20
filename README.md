@@ -39,7 +39,9 @@ cd vm && ./vm-rebuild.sh && ./vm-run.sh
 - **Dual GPU (laptops AMD+NVIDIA)**: PRIME offload declarativo, `horus-gpu-watch` cambia iGPU/dGPU, perfil de energía y envelope del CPU según AC/batería
 - **Laptop-first**: hibernación validada, carga limitada al 80%, botón de encendido → lockscreen, RGB pre-SDDM, toggle rendimiento (fans + CPU al máximo, solo AC)
 - **Privacidad declarativa**: DNS-over-TLS, firewall, MAC aleatoria (`horus-privacy` para toggles runtime)
-- **Gaming**: Steam, gamescope, MangoHud temado, `horus-fsr`
+- **Gaming**: Steam, gamescope, MangoHud temado, `horus-fsr` y config declarativa de Sober (Roblox: Vulkan, FPS destapados)
+- **Kernel seleccionable**: `horus.kernel` = cachyos (default) / zen / latest / lts / hardened; el bootstrap lo pregunta al instalar
+- **`horus-update`**: actualiza inputs del flake, hace rebuild, commitea el lock y actualiza flatpaks en un comando
 - **Boot y apagado silenciosos** con branding Horus y generaciones limitadas
 
 ### Estructura
@@ -90,7 +92,9 @@ cd vm && ./vm-rebuild.sh && ./vm-run.sh
 - **Dual GPU (AMD+NVIDIA laptops)**: declarative PRIME offload, `horus-gpu-watch` switches iGPU/dGPU, power profile and CPU envelope on AC/battery
 - **Laptop-first**: validated hibernation, 80% charge limit, power button → lockscreen, pre-SDDM RGB, performance toggle (fans + CPU maxed, AC only)
 - **Declarative privacy**: DNS-over-TLS, firewall, MAC randomization (`horus-privacy` for runtime toggles)
-- **Gaming**: Steam, gamescope, themed MangoHud, `horus-fsr`
+- **Gaming**: Steam, gamescope, themed MangoHud, `horus-fsr` and declarative Sober config (Roblox: Vulkan, uncapped FPS)
+- **Selectable kernel**: `horus.kernel` = cachyos (default) / zen / latest / lts / hardened; bootstrap asks on install
+- **`horus-update`**: bumps flake inputs, rebuilds, commits the lock and updates flatpaks in one command
 - **Silent boot & shutdown** with Horus branding and limited generations
 
 ### Layout
