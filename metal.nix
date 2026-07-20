@@ -24,6 +24,14 @@
   # kyu necesita el grupo input para hidraw (RGB ITE5570)
   users.users.kyu.extraGroups = [ "input" ];
   # Batería y perfiles de energía — Noctalia (UPower) y horus-power (PPD)
+  # GPP0 (root port dGPU) despierta la maquina al hibernar
+  systemd.services.acpi-wakeup-fix = {
+    description = "Deshabilita wakeup ACPI de GPP0 (aborta hibernacion)";
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig.Type = "oneshot";
+    script = "grep -q \"^GPP0.*enabled\" /proc/acpi/wakeup && echo GPP0 > /proc/acpi/wakeup || true";
+  };
+
   services.upower.enable = true;
   services.power-profiles-daemon.enable = true;
 }

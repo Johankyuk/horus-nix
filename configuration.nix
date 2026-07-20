@@ -15,6 +15,17 @@
   # ===================================================================
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.systemd-boot.configurationLimit = 5;
+  boot.consoleLogLevel = 0;
+  boot.initrd.verbose = false;
+  boot.kernelParams = [ "quiet" "udev.log_level=3" ];
+  system.nixos.distroName = "Horus";
+
+  # Boton de encendido: tap = nada (Niri lo maneja), long-press = apagar
+  services.logind.settings.Login = {
+    HandlePowerKey = "ignore";
+    HandlePowerKeyLongPress = "poweroff";
+  };
 
   # Kernel CachyOS desde Chaotic-Nyx (mismos parches que usas hoy)
   boot.kernelPackages = pkgs.linuxPackages_cachyos;
