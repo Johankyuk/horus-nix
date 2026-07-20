@@ -180,7 +180,6 @@
 
     # Utilidades
     python3
-    ryzenadj  # limites de watts del Ryzen (horus-gpu-watch)
     gtk3  # gtk-update-icon-cache para horus-theme
     glib  # gsettings para horus-theme
   ];

@@ -58,7 +58,7 @@ in
     commands = [
       { command = "/run/current-system/sw/bin/horus-sddm-apply"; options = [ "NOPASSWD" ]; }
       { command = "/run/current-system/sw/bin/horus-sddm-apply *"; options = [ "NOPASSWD" ]; }
-      { command = "/run/current-system/sw/bin/ryzenadj *"; options = [ "NOPASSWD" ]; }
+      { command = "/run/current-system/sw/bin/horus-cpu-cap *"; options = [ "NOPASSWD" ]; }
     ];
   }];
 }
