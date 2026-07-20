@@ -188,6 +188,31 @@
         org.vinegarhq.Sober io.mrarm.mcpelauncher || true
     '';
   };
+  # Config declarativa de Sober: merge de llaves Horus sobre el config.json vivo
+  systemd.user.services.horus-sober-config = {
+    description = "Aplica flags Horus al config de Sober";
+    wantedBy = [ "default.target" ];
+    path = [ pkgs.python3 ];
+    serviceConfig = { Type = "oneshot"; RemainAfterExit = true; };
+    script = ''
+      cfg="$HOME/.var/app/org.vinegarhq.Sober/config/sober/config.json"
+      [ -f "$cfg" ] || exit 0   # Sober aun no corre; se aplicara en el siguiente login
+      python3 - "$cfg" <<'PY'
+      import json, sys
+      p = sys.argv[1]
+      # Sober antepone comentarios // al JSON; se quitan para parsear
+      body = "\n".join(l for l in open(p).read().splitlines()
+                       if not l.lstrip().startswith("//"))
+      d = json.loads(body)
+      ff = d.setdefault("fflags", {})
+      ff.pop("FFlagExample", None)
+      ff["DFIntTaskSchedulerTargetFps"] = 999   # destapa el limite de FPS
+      d["use_opengl"] = False                   # renderer Vulkan (MangoHud)
+      json.dump(d, open(p, "w"), indent=4, sort_keys=True)
+      PY
+    '';
+  };
+
   services.upower.enable = true;
 
   system.stateVersion = "25.05";
