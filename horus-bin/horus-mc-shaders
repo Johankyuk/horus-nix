@@ -14,10 +14,10 @@ set -euo pipefail
 SM_URL="https://github.com/GameParrot/mcpelauncher-shadersmod/releases/download/v1.1/shadersmod-android-x86_64.zip"
 DATA="$HOME/.var/app/io.mrarm.mcpelauncher/data/mcpelauncher"
 MODS="$DATA/mods"; SHADERS="$DATA/shaders"; RP="$DATA/games/com.mojang/resource_packs"
-MCPACK="${1:-$(ls -1t "$HOME/Descargas"/newb-classic*.mcpack "$HOME/Documentos"/newb-classic*.mcpack 2>/dev/null | head -1)}"
+MCPACK="${1:-$(ls -1t "$HOME/Descargas"/newb-classic*.mcpack "$HOME/Downloads"/newb-classic*.mcpack "$HOME/Documentos"/newb-classic*.mcpack "$HOME/Documents"/newb-classic*.mcpack 2>/dev/null | head -1)}"
 SUBPACK="${2:-}"
 
-command -v unzip >/dev/null || { echo "ERROR: instala unzip (sudo pacman -S unzip)"; exit 1; }
+command -v unzip >/dev/null || { echo "ERROR: instala unzip (agregar unzip al flake)"; exit 1; }
 command -v curl  >/dev/null || { echo "ERROR: falta curl"; exit 1; }
 [ -d "$DATA" ] || { echo "ERROR: abre mcpelauncher una vez antes (no existe $DATA)."; exit 1; }
 [ -n "$MCPACK" ] && [ -f "$MCPACK" ] || { echo "ERROR: sin .mcpack. Pásalo como arg o ponlo en ~/Descargas o ~/Documentos."; exit 1; }
