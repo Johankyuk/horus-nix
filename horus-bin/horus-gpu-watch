@@ -22,7 +22,7 @@ while true; do
     fi
     # Watts del Ryzen: en bateria envelope bajo y seguro (evita apagones por
     # pico de corriente); en AC, envelope completo de fabrica.
-    sudo -n horus-cpu-cap "$f" >/dev/null 2>&1 || true
+    /run/wrappers/bin/sudo -n /run/current-system/sw/bin/horus-cpu-cap "$f" >/dev/null 2>&1 || true
     fuente="$f"
   fi
   if [ "$f" = "ac" ] && _hay_dgpu; then nuevo="dgpu"; else nuevo="igpu"; fi
