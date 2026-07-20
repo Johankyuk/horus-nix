@@ -7,6 +7,9 @@ REPO_HTTPS="https://github.com/Johankyuk/horus-nix.git"
 REPO_SSH="git@github.com:Johankyuk/horus-nix.git"
 DEST="$HOME/horus-nix"
 HOST="$(hostname)"
+if [ "$HOST" = "nixos" ] || [ -z "$HOST" ]; then
+  read -rp "Nombre para esta máquina (hostname/target): " HOST </dev/tty
+fi
 CACHE_OPTS=(--option extra-substituters "https://chaotic-nyx.cachix.org"
             --option extra-trusted-public-keys "chaotic-nyx.cachix.org-1:HfnXSw4pj95iI/n17rIDy40agHj12WfF+Gqk6SonIT8=")
 

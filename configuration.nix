@@ -35,7 +35,7 @@
   # ===================================================================
   # IDENTIDAD DEL SISTEMA
   # ===================================================================
-  networking.hostName = "horus";
+  networking.hostName = lib.mkDefault "horus";
   time.timeZone = "America/Mexico_City";
   i18n.defaultLocale = "es_MX.UTF-8";
 
