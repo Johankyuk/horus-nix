@@ -5,6 +5,10 @@
 set -euo pipefail
 FLAKE="$HOME/horus-nix"
 
+# Cachea credencial sudo al inicio para no colgar el prompt a media ejecucion
+echo "→ Autenticando (sudo)..."
+sudo -v
+
 echo "→ Respaldando lock actual (el que compila)..."
 cp "$FLAKE/flake.lock" "$FLAKE/flake.lock.pre-update"
 
