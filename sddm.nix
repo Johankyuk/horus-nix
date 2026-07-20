@@ -3,8 +3,8 @@ let
   horus-src = pkgs.fetchFromGitHub {
     owner = "Johankyuk";
     repo = "Horus-Project";
-    rev = "2ba844f790d4f455bf0edb2969b0351dc1500a1e";
-    hash = "sha256-tj/ktwOcblsResgtV3AgmPM/EBOSNDQxKcEGlp+eM7s=";
+    rev = "5cb532f48f79e9103276ce673f33947172a9f6e0";
+    hash = "sha256-qRKOwO99Ak+SIYzwVcXy7dKraGjX10HbZaz5I6saJHA=";
   };
   sddm-sugar-dark-horus = pkgs.stdenvNoCC.mkDerivation {
     pname = "sddm-sugar-dark-horus";
