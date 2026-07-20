@@ -5,8 +5,6 @@
     # Rama rolling de nixpkgs — lo más cercano a Arch en frescura
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-    # Chaotic-Nyx: kernel CachyOS, mesa-git, paquetes bleeding-edge
-    chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
     # Zen Browser — no esta en nixpkgs (branding), flake comunitario estandar
     zen-browser = {
       url = "github:0xc000022070/zen-browser-flake";
@@ -14,12 +12,12 @@
     };
   };
 
-  outputs = { self, nixpkgs, chaotic, ... }@inputs:
+  outputs = { self, nixpkgs, ... }@inputs:
     let
       mkSystem = extraModules: nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = { inherit inputs; };
-        modules = [ chaotic.nixosModules.default ./configuration.nix ] ++ extraModules;
+        modules = [ ./configuration.nix ] ++ extraModules;
       };
       hostNames = builtins.attrNames
         (nixpkgs.lib.filterAttrs (n: v: v == "directory") (builtins.readDir ./hosts));
