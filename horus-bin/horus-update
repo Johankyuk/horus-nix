@@ -1,24 +1,45 @@
 #!/usr/bin/env bash
 # Actualiza todo en un comando: inputs del flake (nixpkgs, chaotic, zen) +
-# rebuild del sistema + flatpaks. Commitea el lock si el rebuild fue exitoso.
+# rebuild del sistema + flatpaks. Update ATÓMICO: si el rebuild truena,
+# revierte el lock y reconstruye con el bueno. Nunca deja el sistema roto.
 set -euo pipefail
 FLAKE="$HOME/horus-nix"
+
+echo "→ Respaldando lock actual (el que compila)..."
+cp "$FLAKE/flake.lock" "$FLAKE/flake.lock.pre-update"
+
 echo "→ Actualizando inputs del flake..."
 nix flake update --flake "$FLAKE"
+
 if git -C "$FLAKE" diff --quiet flake.lock; then
     echo "→ Lock sin cambios; rebuild por si hay cambios locales..."
 else
     echo "→ Lock actualizado."
 fi
+
 echo "→ Rebuild del sistema..."
-sudo nixos-rebuild switch --flake "$FLAKE"
-if ! git -C "$FLAKE" diff --quiet flake.lock; then
-    git -C "$FLAKE" add flake.lock
-    git -C "$FLAKE" commit -m "flake.lock: bump inputs ($(date +%F))"
-    git -C "$FLAKE" push || echo "⚠ push falló (¿sin red/SSH?); commit local hecho"
+if sudo nixos-rebuild switch --flake "$FLAKE"; then
+    rm -f "$FLAKE/flake.lock.pre-update"
+    if ! git -C "$FLAKE" diff --quiet flake.lock; then
+        git -C "$FLAKE" add flake.lock
+        git -C "$FLAKE" commit -m "flake.lock: bump inputs ($(date +%F))"
+        git -C "$FLAKE" push || echo "⚠ push falló (¿sin red/SSH?); commit local hecho"
+    fi
+else
+    echo ""
+    echo "✗ Rebuild falló con los inputs nuevos (probable regresión upstream)."
+    echo "→ Revirtiendo lock al último que compilaba y reconstruyendo..."
+    mv "$FLAKE/flake.lock.pre-update" "$FLAKE/flake.lock"
+    sudo nixos-rebuild switch --flake "$FLAKE"
+    echo ""
+    echo "⚠ Update pospuesto: el bump rompió el build, sistema intacto en la versión previa."
+    echo "  Reintenta en unos días. Nada que limpiar a mano."
+    exit 0
 fi
+
 if command -v flatpak >/dev/null; then
     echo "→ Flatpaks..."
-    flatpak update -y
+    flatpak update -y || echo "⚠ flatpak update falló; sistema ya actualizado igual"
 fi
+
 echo "✓ Todo actualizado."
