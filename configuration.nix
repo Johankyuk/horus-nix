@@ -20,6 +20,8 @@
   boot.initrd.verbose = false;
   boot.kernelParams = [ "quiet" "udev.log_level=3" ];
   system.nixos.distroName = "Horus";
+  # Silenciar mensajes de systemd al apagar/reiniciar (equivalente al quiet del boot)
+  systemd.settings.Manager.ShowStatus = "no";
 
   # Boton de encendido: tap = nada (Niri lo maneja), long-press = apagar
   services.logind.settings.Login = {
