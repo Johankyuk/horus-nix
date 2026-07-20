@@ -5,9 +5,9 @@
 #   horus-sddm-apply fondo   → Background.png (fondo de login)
 # Pensado para sudoers NOPASSWD.
 set -euo pipefail
-DIR="/usr/share/sddm/themes/sugar-dark-horus"
+DIR="/var/lib/horus-sddm"
 [[ $EUID -eq 0 ]] || { echo "horus-sddm-apply: requiere root" >&2; exit 1; }
-[[ -d $DIR ]] || { echo "horus-sddm-apply: tema sugar-dark-horus no instalado" >&2; exit 1; }
+mkdir -p "$DIR"
 case "${1:-conf}" in
   conf)  cat > "$DIR/theme.conf" ;;
   fondo) cat > "$DIR/Background.png" ;;

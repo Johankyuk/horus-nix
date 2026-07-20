@@ -24,6 +24,14 @@ let
       # Port Qt5 -> Qt6: QtGraphicalEffects vive ahora en Qt5Compat
       find $out/share/sddm/themes/sugar-dark-horus -name '*.qml' \
         -exec sed -i 's/^import QtGraphicalEffects.*/import Qt5Compat.GraphicalEffects/' {} +
+      # Theming dinamico: conf y fondo viven en /var/lib/horus-sddm (mutable)
+      T=$out/share/sddm/themes/sugar-dark-horus
+      cp $T/theme.conf $T/theme.conf.default
+      sed -i 's/Background="Background.jpg"/Background="Background.png"/' $T/theme.conf.default
+      cp $T/Background.jpg $T/Background.default
+      rm -f $T/theme.conf $T/Background.png
+      ln -s /var/lib/horus-sddm/theme.conf $T/theme.conf
+      ln -s /var/lib/horus-sddm/Background.png $T/Background.png
     '';
   };
 in
@@ -34,4 +42,22 @@ in
     extraPackages = [ pkgs.kdePackages.qt5compat ];
   };
   environment.systemPackages = [ sddm-sugar-dark-horus ];
+
+  # Seed inicial de /var/lib/horus-sddm (solo si no existe)
+  system.activationScripts.horus-sddm-seed = ''
+    mkdir -p /var/lib/horus-sddm
+    [ -f /var/lib/horus-sddm/theme.conf ] || cp ${sddm-sugar-dark-horus}/share/sddm/themes/sugar-dark-horus/theme.conf.default /var/lib/horus-sddm/theme.conf
+    [ -f /var/lib/horus-sddm/Background.png ] || cp ${sddm-sugar-dark-horus}/share/sddm/themes/sugar-dark-horus/Background.default /var/lib/horus-sddm/Background.png
+    chmod 755 /var/lib/horus-sddm
+    chmod 644 /var/lib/horus-sddm/*
+  '';
+
+  # sudoers NOPASSWD: horus-theme llama sudo horus-sddm-apply
+  security.sudo.extraRules = [{
+    users = [ "kyu" ];
+    commands = [
+      { command = "/run/current-system/sw/bin/horus-sddm-apply"; options = [ "NOPASSWD" ]; }
+      { command = "/run/current-system/sw/bin/horus-sddm-apply *"; options = [ "NOPASSWD" ]; }
+    ];
+  }];
 }

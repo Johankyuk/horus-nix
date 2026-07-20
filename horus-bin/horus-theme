@@ -390,7 +390,7 @@ def save_state(tema):
 # ── 6) SDDM: MainColor/AccentColor (requiere root; best-effort) ─
 def patch_sddm(tema, ts):
     src = os.path.join(REPO, "sugar-dark-horus", "theme.conf")   # fuente Morada
-    dst = "/usr/share/sddm/themes/sugar-dark-horus/theme.conf"
+    dst = "/var/lib/horus-sddm/theme.conf"
     if not os.path.isfile(src):
         warn("theme.conf SDDM (repo) no hallado; SDDM sin recolorear."); return
     out = _sub_hex(open(src, encoding="utf-8").read(), lambda h: True, tema)  # ambos colores rotan
@@ -398,7 +398,7 @@ def patch_sddm(tema, ts):
     if os.path.isfile(dst) and open(dst, encoding="utf-8").read() == out:
         skip(f"SDDM theme.conf ya en '{tema}'.")
     else:
-        r = subprocess.run(["sudo", "-n", "/usr/local/bin/horus-sddm-apply"],
+        r = subprocess.run(["sudo", "-n", "horus-sddm-apply"],
                            input=out, text=True, capture_output=True)
         if r.returncode == 0:
             did(f"SDDM theme.conf -> {tema}"); _CAMBIOS[0] = True
@@ -416,7 +416,7 @@ def patch_sddm(tema, ts):
             skip("SDDM fondo ya en el wallpaper del tema."); return
     except Exception:
         pass
-    r = subprocess.run(["sudo", "-n", "/usr/local/bin/horus-sddm-apply", "fondo"],
+    r = subprocess.run(["sudo", "-n", "horus-sddm-apply", "fondo"],
                        input=datos, capture_output=True)
     if r.returncode == 0:
         did(f"SDDM fondo -> {os.path.basename(png)}"); _CAMBIOS[0] = True
