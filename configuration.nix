@@ -139,7 +139,7 @@
     keyd
 
     # Escritorio
-    nvtop        # monitor de GPU (RTX + Radeon)
+    nvtopPackages.full  # monitor de GPU (RTX + Radeon)
     btop
     mesa-demos   # glxinfo/glxgears para validar PRIME
     pcmanfm-qt
