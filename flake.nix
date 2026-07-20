@@ -14,26 +14,20 @@
     };
   };
 
-  outputs = { self, nixpkgs, chaotic, ... }@inputs: {
-    nixosConfigurations.horus = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      specialArgs = { inherit inputs; };
-      modules = [
-        chaotic.nixosModules.default   # habilita linuxPackages_cachyos y el cache binario
-        ./configuration.nix
-      ];
+  outputs = { self, nixpkgs, chaotic, ... }@inputs:
+    let
+      mkSystem = extraModules: nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        specialArgs = { inherit inputs; };
+        modules = [ chaotic.nixosModules.default ./configuration.nix ] ++ extraModules;
+      };
+      hostNames = builtins.attrNames
+        (nixpkgs.lib.filterAttrs (n: v: v == "directory") (builtins.readDir ./hosts));
+    in {
+      nixosConfigurations =
+        # 'horus' generico (VM / pruebas, sin hardware)
+        { horus = mkSystem [ ]; }
+        # cada carpeta en hosts/ es un target real (nombre = hostname)
+        // nixpkgs.lib.genAttrs hostNames (name: mkSystem [ (./hosts + "/${name}") ]);
     };
-
-    # Target para hardware real: mismo sistema + hardware real + extras metal
-    nixosConfigurations.horus-metal = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      specialArgs = { inherit inputs; };
-      modules = [
-        chaotic.nixosModules.default
-        ./configuration.nix
-        ./hardware-configuration.nix
-        ./metal.nix
-      ];
-    };
-  };
 }

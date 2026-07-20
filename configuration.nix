@@ -55,22 +55,7 @@
   # Esto reemplaza tu configuración manual de PRIME y las 4 vars
   # de entorno que hoy inyectas por Flatpak override
   # ===================================================================
-  services.xserver.videoDrivers = [ "nvidia" ];
-
   hardware.graphics.enable = true;
-
-  hardware.nvidia = {
-    modesetting.enable = true;
-    powerManagement.enable = true;        # permite D3cold en batería
-    powerManagement.finegrained = true;   # apaga la dGPU cuando no se usa
-    open = true;                          # módulos open-kernel (Turing+)
-    prime = {
-      offload.enable = true;
-      offload.enableOffloadCmd = true;    # te da el comando nvidia-offload
-      amdgpuBusId = "PCI:101:0:0";        # 65:00.0 en hex → 101 en decimal
-      nvidiaBusId = "PCI:1:0:0";
-    };
-  };
 
   # ===================================================================
   # ESCRITORIO — Niri (módulo nativo en nixpkgs)
@@ -115,23 +100,6 @@
   };
 
   # ===================================================================
-  # HARDWARE ASUS — reemplaza tu horus-bat-limit y asusctl manual
-  # ===================================================================
-  services.asusd.enable = true;
-  services.power-profiles-daemon.enable = true;
-
-  # Límite de carga al 80% (lo que hoy haces con asusctl battery limit)
-  systemd.services.battery-limit = {
-    description = "Límite de carga al 80%";
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig.Type = "oneshot";
-    script = ''
-      for f in /sys/class/power_supply/BAT*/charge_control_end_threshold; do
-        echo 80 > "$f"
-      done
-    '';
-  };
-
   # ===================================================================
   # GAMING — tu stack actual
   # ===================================================================
@@ -205,6 +173,23 @@
     device = "/dev/disk/by-label/nixos";
     fsType = "ext4";
   };
+
+
+  # Flatpaks del stack (imperativos por naturaleza; primer boot con red)
+  systemd.user.services.horus-flatpak = {
+    description = "Instala flatpaks del stack Horus";
+    wantedBy = [ "default.target" ];
+    wants = [ "network-online.target" ];
+    after = [ "network-online.target" ];
+    path = [ pkgs.flatpak ];
+    serviceConfig = { Type = "oneshot"; RemainAfterExit = true; Restart = "on-failure"; RestartSec = "10s"; };
+    script = ''
+      flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo || exit 0
+      flatpak install -y --noninteractive --user flathub \
+        org.vinegarhq.Sober io.mrarm.mcpelauncher || true
+    '';
+  };
+  services.upower.enable = true;
 
   system.stateVersion = "25.05";
 }
