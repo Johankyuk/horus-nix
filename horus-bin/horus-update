@@ -1,13 +1,22 @@
-#!/bin/bash
-# Actualiza todo en un solo comando: rankea mirrors (Arch + CachyOS), luego repos +
-# AUR (paru) y por último los Flatpaks.
-set -e
-if command -v cachyos-rate-mirrors >/dev/null; then
-    echo "→ Rankeando mirrors (Arch + CachyOS)..."
-    sudo cachyos-rate-mirrors
+#!/usr/bin/env bash
+# Actualiza todo en un comando: inputs del flake (nixpkgs, chaotic, zen) +
+# rebuild del sistema + flatpaks. Commitea el lock si el rebuild fue exitoso.
+set -euo pipefail
+FLAKE="$HOME/horus-nix"
+echo "→ Actualizando inputs del flake..."
+nix flake update --flake "$FLAKE"
+if git -C "$FLAKE" diff --quiet flake.lock; then
+    echo "→ Lock sin cambios; rebuild por si hay cambios locales..."
+else
+    echo "→ Lock actualizado."
 fi
-echo "→ Sistema (repos + AUR)..."
-paru -Syu --noconfirm --skipreview --sudoloop
+echo "→ Rebuild del sistema..."
+sudo nixos-rebuild switch --flake "$FLAKE"
+if ! git -C "$FLAKE" diff --quiet flake.lock; then
+    git -C "$FLAKE" add flake.lock
+    git -C "$FLAKE" commit -m "flake.lock: bump inputs ($(date +%F))"
+    git -C "$FLAKE" push || echo "⚠ push falló (¿sin red/SSH?); commit local hecho"
+fi
 if command -v flatpak >/dev/null; then
     echo "→ Flatpaks..."
     flatpak update -y
