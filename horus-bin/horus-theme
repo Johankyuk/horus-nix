@@ -20,12 +20,12 @@ def _localizar_repo():
               os.path.expanduser("~/.config/horus/repo"),
               os.path.expanduser("~/Horus-Project"),
               os.path.expanduser("~/Horus-Core")):
-        if c and os.path.isfile(os.path.join(c, "Wallpapers", "base.svg")):
+        if c and os.path.isfile(os.path.join(c, "assets", "base.svg")):
             return os.path.abspath(c)
     # fallback: junto a este script
     here = os.path.dirname(os.path.abspath(__file__))
     for c in (here, os.path.dirname(here)):
-        if os.path.isfile(os.path.join(c, "Wallpapers", "base.svg")):
+        if os.path.isfile(os.path.join(c, "assets", "base.svg")):
             return c
     sys.exit("[err] No encuentro el repo de contenido Horus-Project (define HORUS_DIR).")
 
@@ -80,7 +80,7 @@ CFG      = os.path.join(HOME, ".config")
 REPO_CFG = os.path.join(REPO, "config")   # fuente Morada: SIEMPRE se parte de aqui
 STATE   = os.path.join(CFG, "horus", "tema")
 BK_ROOT = os.path.join(HOME, ".cache", "horus", "tema-backups")
-SVG_BASE = os.path.join(REPO, "Wallpapers", "base.svg")
+SVG_BASE = os.path.join(REPO, "assets", "base.svg")
 WALL_DIR = os.path.join(REPO, "Wallpapers")
 
 # Conjuntos de color con doble rol — se anclan por-archivo.

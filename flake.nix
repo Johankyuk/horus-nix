@@ -25,8 +25,8 @@
         (nixpkgs.lib.filterAttrs (n: v: v == "directory") (builtins.readDir ./hosts));
     in {
       nixosConfigurations =
-        # 'horus' generico (VM / pruebas, sin hardware)
-        { horus = mkSystem [ ]; }
+        # target generico para la VM de pruebas (sin hardware)
+        { horus-vm = mkSystem [ ]; }
         # cada carpeta en hosts/ es un target real (nombre = hostname)
         // nixpkgs.lib.genAttrs hostNames (name: mkSystem [ (./hosts + "/${name}") ]);
     };
