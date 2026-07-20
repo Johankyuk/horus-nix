@@ -97,7 +97,7 @@ in
       # Ocultar .desktop de sistema en el launcher (override usuario, reversible)
       for _h in avahi-discover bssh bvnc qv4l2 qvidcap foot footclient foot-server \
                 qt6ct xarchiver btop micro vim nvim htop \
-                org.pulseaudio.pavucontrol nixos-manual; do
+                org.pulseaudio.pavucontrol nixos-manual rog-control-center; do
         printf '[Desktop Entry]\nType=Application\nName=%s\nNoDisplay=true\nHidden=true\nX-Kyu-Launcher-Hide=1\n' \
           "$_h" > "$APPS/$_h.desktop"
       done
