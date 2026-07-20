@@ -5,7 +5,8 @@
 #   horus-cursor --all                                 pre-genera los 9 temas
 set -u
 HORUS_DIR="${HORUS_DIR:-$(cat "$HOME/.config/horus/repo" 2>/dev/null || echo "$HOME/Horus-Core")}"
-SRC="/usr/share/icons/Bibata-Modern-Classic"
+SRC="/run/current-system/sw/share/icons/Bibata-Modern-Classic"
+[ -d "$SRC" ] || SRC="/usr/share/icons/Bibata-Modern-Classic"
 GTK3="$HOME/.config/gtk-3.0/settings.ini"; GTK4="$HOME/.config/gtk-4.0/settings.ini"
 
 gtk_key() {  # archivo clave valor — replica apply_gtk_key del setup

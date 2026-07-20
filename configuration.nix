@@ -182,6 +182,8 @@
 
     # Utilidades
     python3
+    bibata-cursors  # base para horus-cursor
+    imagemagick     # recoloreo de cursores
     gtk3  # gtk-update-icon-cache para horus-theme
     glib  # gsettings para horus-theme
   ];
