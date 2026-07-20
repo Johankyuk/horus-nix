@@ -180,6 +180,8 @@
 
     # Utilidades
     python3
+    gtk3  # gtk-update-icon-cache para horus-theme
+    glib  # gsettings para horus-theme
   ];
 
   # keyd como servicio (tu overload de Super → F13)

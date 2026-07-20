@@ -206,7 +206,8 @@ PAPIRUS_VIOLET = "#7e57c2"   # color principal de la familia plantilla
 FOLDERS_DIR = os.path.join(HOME, ".local", "share", "icons", "Horus-Folders")
 
 def _papirus_dir():
-    for d in ("/usr/share/icons/Papirus",
+    for d in ("/run/current-system/sw/share/icons/Papirus",
+              "/usr/share/icons/Papirus",
               os.path.join(HOME, ".local", "share", "icons", "Papirus")):
         if os.path.isdir(d):
             return d
@@ -300,8 +301,11 @@ def gen_folders(tema, ts):
         did(f"Carpetas -> {tema} ({escritos}/{total} SVG regenerados).")
     else:
         skip(f"Carpetas: ya estaban en '{tema}' ({total} SVG).")
-    subprocess.run(["gtk-update-icon-cache", "-f", "-q", FOLDERS_DIR],
-                   check=False, capture_output=True)
+    try:
+        subprocess.run(["gtk-update-icon-cache", "-f", "-q", FOLDERS_DIR],
+                       check=False, capture_output=True)
+    except FileNotFoundError:
+        pass
     # GTK tambien apunta al overlay (PCManFM-Qt lo toma via qt6ct en gen_qt6ct)
     for ini in (os.path.join(CFG, "gtk-3.0", "settings.ini"),
                 os.path.join(CFG, "gtk-4.0", "settings.ini")):
