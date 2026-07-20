@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# horus-fans-max — fans al máximo mientras el modo rendimiento de Noctalia esté activo.
+# Solo actúa en AC; en batería es no-op. 'off' restaura la curva estándar del perfil activo.
+set -uo pipefail
+CURVA_QUIET="30c:0%,55c:0%,63c:10%,70c:28%,78c:52%,85c:78%,91c:100%,97c:100%"
+CURVA_BAL="30c:0%,50c:12%,60c:28%,70c:45%,78c:62%,85c:82%,91c:100%,96c:100%"
+CURVA_PERF="35c:25%,48c:42%,58c:60%,67c:78%,74c:92%,81c:100%,88c:100%,95c:100%"
+CURVA_MAX="20c:100%,40c:100%,55c:100%,65c:100%,75c:100%,85c:100%,90c:100%,95c:100%"
+_en_ac(){ for p in /sys/class/power_supply/*/online; do
+    [ -r "$p" ] && [ "$(cat "$p")" = "1" ] && return 0; done; return 1; }
+_aplica(){ # $1=perfil asusctl $2=curva
+    asusctl fan-curve --mod-profile "$1" --fan cpu --data "$2" &>/dev/null
+    asusctl fan-curve --mod-profile "$1" --fan gpu --data "$2" &>/dev/null
+    asusctl fan-curve --mod-profile "$1" --enable-fan-curves true &>/dev/null
+}
+perfil="$(cat /sys/firmware/acpi/platform_profile 2>/dev/null)" || exit 0
+case "${1:-}" in
+  on)
+    _en_ac || exit 0   # en batería: suicidio, no-op
+    _aplica "$perfil" "$CURVA_MAX"
+    ;;
+  off)
+    case "$perfil" in
+      quiet)       _aplica quiet       "$CURVA_QUIET" ;;
+      balanced)    _aplica balanced    "$CURVA_BAL" ;;
+      performance) _aplica performance "$CURVA_PERF" ;;
+    esac
+    ;;
+  *) echo "uso: horus-fans-max on|off" >&2; exit 1 ;;
+esac
