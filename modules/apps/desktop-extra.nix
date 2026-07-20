@@ -5,7 +5,7 @@
   config = lib.mkIf config.horus.apps.desktopExtra.enable {
     environment.systemPackages = with pkgs; [
       qt6Packages.qt6ct papirus-icon-theme bibata-cursors catppuccin-gtk
-      imagemagick xorg.xcursorgen xcur2png       # generacion cursor Bibata-Horus
+      imagemagick xcursorgen xcur2png       # generacion cursor Bibata-Horus
       libnotify wlsunset wob wl-mirror
     ];
     xdg.portal = {
