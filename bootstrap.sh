@@ -18,12 +18,16 @@ echo "[1/5] Clonando flake..."
 
 echo "[2/5] Registrando esta máquina como host '$HOST'..."
 if [ ! -d "$DEST/hosts/$HOST" ]; then
+  echo "Kernel: 1) cachyos (gaming, default)  2) zen  3) latest  4) lts  5) hardened"
+  read -rp "Elige [1-5]: " K </dev/tty
+  case "$K" in 2) KERNEL=zen;; 3) KERNEL=latest;; 4) KERNEL=lts;; 5) KERNEL=hardened;; *) KERNEL=cachyos;; esac
   mkdir -p "$DEST/hosts/$HOST"
   cp /etc/nixos/hardware-configuration.nix "$DEST/hosts/$HOST/"
   cat > "$DEST/hosts/$HOST/default.nix" <<EOF
 { ... }:
 {
   imports = [ ./hardware-configuration.nix ];
+  horus.kernel = "$KERNEL";
   # Overrides específicos de esta máquina van aquí (GPU, udev, hibernación...)
   networking.hostName = "$HOST";
 }

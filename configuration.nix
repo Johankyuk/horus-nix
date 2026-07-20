@@ -1,7 +1,7 @@
 { config, pkgs, lib, ... }:
 
 {
-  imports = [ ./noctalia.nix ./horus-tools.nix ./horus-bootstrap.nix
+  imports = [ ./modules/kernel.nix ./noctalia.nix ./horus-tools.nix ./horus-bootstrap.nix
     ./sddm.nix
     ./desktop-stack.nix
     ./gtk.nix
@@ -30,7 +30,6 @@
   };
 
   # Kernel CachyOS desde Chaotic-Nyx (mismos parches que usas hoy)
-  boot.kernelPackages = pkgs.linuxPackages_cachyos;
 
   # ===================================================================
   # IDENTIDAD DEL SISTEMA
