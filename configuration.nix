@@ -25,6 +25,9 @@
 
   # Boton de encendido: tap = nada (Niri lo maneja), long-press = apagar
   services.logind.settings.Login = {
+    # Cerrar tapa NO suspende; solo se apaga la pantalla (DPMS lo maneja).
+    HandleLidSwitch = "ignore";
+    HandleLidSwitchExternalPower = "ignore";
     HandlePowerKey = "ignore";
     HandlePowerKeyLongPress = "poweroff";
   };
@@ -116,16 +119,10 @@
     ln -sfn ${pkgs.bash}/bin/bash /bin/bash
   '';
 
-  users.mutableUsers = false;
-
-  users.users.kyu = {
-    isNormalUser = true;
-    extraGroups = [ "wheel" "networkmanager" "video" ];
-    shell = pkgs.bash;
-    hashedPassword = "$6$6/kkeSZCW6DEn.qw$PlK5PWqW/XndDhTw8F2d3mlT1rhTimcrgk8RevTHzgHUxtU/H612vwiS.fJQme48OlvBvzQAxRoqhYm7XA2PZ.";
-  };
-
-  users.users.root.hashedPassword = "$6$6/kkeSZCW6DEn.qw$PlK5PWqW/XndDhTw8F2d3mlT1rhTimcrgk8RevTHzgHUxtU/H612vwiS.fJQme48OlvBvzQAxRoqhYm7XA2PZ.";
+  # Usuarios mutables: cada maquina define su usuario en hosts/<host>/ y la
+  # contrasena se pone con `passwd` (local, nunca en el repo). NixOS respeta
+  # la de /etc/shadow en cada rebuild.
+  users.mutableUsers = true;
 
   # ===================================================================
   # PAQUETES — el equivalente a tus arrays de pacman en setup_master
