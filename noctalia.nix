@@ -74,7 +74,10 @@ in
     description = "Noctalia shell (barra + launcher)";
     # PATH del servicio: Noctalia lanza subprocesos con sh (launcher, widgets).
     # Sin esto arranca degradado (barra sí, launcher/disk no).
-    path = with pkgs; [ bash coreutils util-linux procps networkmanager bluez python3 fontconfig imagemagick ];
+    path = with pkgs; [ bash coreutils util-linux procps networkmanager bluez python3 fontconfig imagemagick ]
+      # Perfil del sistema completo: el launcher antepone customLaunchPrefix
+      # (horus-gpu) a todo spawn y necesita resolverlo, igual que foot.
+      ++ [ "/run/current-system/sw" ];
     wantedBy = [ "graphical-session.target" ];
     partOf = [ "graphical-session.target" ];
     after = [ "graphical-session.target" ];
