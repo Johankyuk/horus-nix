@@ -23,14 +23,16 @@ let
     '';
   };
   # Wizards que terminan al instante: pausa para que foot no se cierre
-  hold = bin: "${foot} -e ${bash} -c '${sw}/${bin}; read -rsn1'";
+  # Comillas DOBLES: las unicas que define la spec de Exec (las simples
+  # dependen del parser de turno). Args extra van tras el nombre del bin.
+  hold = cmd: "${foot} -e ${bash} -c \"${sw}/${cmd}; read -rsn1\"";
 in
 {
   environment.systemPackages = with pkgs; [
     (mkWizard "theme"     "Horus Theme"      "Horus Tema"        "${foot} -e ${sw}/horus-theme")
     (mkWizard "privacy"   "Horus Privacy"    "Horus Privacidad"  "${foot} -e ${sw}/horus-privacy")
     (mkWizard "language"  "Horus Language"   "Horus Idioma"      "${foot} -e ${sw}/horus-language")
-    (mkWizard "power"     "Horus Power"      "Horus Energía"     "${foot} -e ${sw}/horus-power")
+    (mkWizard "power"     "Horus Power"      "Horus Energía"     (hold "horus-power --actual"))
     (mkWizard "kernel"    "Horus Kernel"     "Horus Kernel"      "${foot} -e ${sw}/horus-kernel")
     (mkWizard "status"    "Horus Status"     "Horus Estado"      (hold "horus-estado"))
     (mkWizard "update"    "Horus Update"     "Horus Update"      (hold "horus-update"))
