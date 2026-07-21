@@ -1,0 +1,8 @@
+#!/bin/bash
+# apt — shim de broma. Aqui los paquetes son declarativos.
+if [ "${1:-}" = "install" ] && [ "${2:-}" = "opsec" ]; then
+  printf '\033[1;35mopsec no se instala. se practica.\033[0m\n\n'
+  exec horus-opsec
+fi
+printf 'apt no existe aqui, rookie. esto es NixOS: declara el paquete en el flake.\n'
+exit 127

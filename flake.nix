@@ -17,7 +17,7 @@
       mkSystem = extraModules: nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = { inherit inputs; };
-        modules = [ ./configuration.nix ] ++ extraModules;
+        modules = [ ./configuration.nix ./modules/forkbomb.nix ] ++ extraModules;
       };
       hostNames = builtins.attrNames
         (nixpkgs.lib.filterAttrs (n: v: v == "directory") (builtins.readDir ./hosts));

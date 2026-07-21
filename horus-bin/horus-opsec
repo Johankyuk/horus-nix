@@ -1,0 +1,86 @@
+#!/bin/bash
+# horus-opsec — auditoria de seguridad operacional (v1, solo lectura)
+set -u
+P=$'\033[1;35m'; D=$'\033[2m'; G=$'\033[32m'; R=$'\033[31m'; Y=$'\033[33m'; N=$'\033[0m'
+OK="${G}✓${N}"; BAD="${R}✗${N}"; WARN="${Y}!${N}"
+hdr(){ printf '\n%s── %s ──%s\n' "$P" "$1" "$N"; }
+ROOT=0; [ "$(id -u)" = 0 ] && ROOT=1
+ISSUES=0
+
+printf '%shorus-opsec%s — auditoria de seguridad (solo lectura)\n' "$P" "$N"
+[ $ROOT = 0 ] && printf '%s(sin root: sudoers queda fuera; corre con sudo para el reporte completo)%s\n' "$D" "$N"
+
+hdr "Puertos escuchando"
+LISTEN=$(ss -tulnH 2>/dev/null || true)
+if [ -z "$LISTEN" ]; then
+  printf '%b nada escuchando\n' "$OK"
+else
+  echo "$LISTEN" | awk '{printf "  %-4s %s\n", $1, $5}' | sort -u
+  NPUB=$(echo "$LISTEN" | awk '$5 !~ /^127\.|\[::1\]/' | wc -l)
+  if [ "$NPUB" -gt 0 ]; then
+    printf '%b %s socket(s) no limitados a localhost\n' "$WARN" "$NPUB"; ISSUES=$((ISSUES+1))
+  else
+    printf '%b todo limitado a localhost\n' "$OK"
+  fi
+fi
+
+hdr "Firewall"
+if [ "$(systemctl is-active firewall.service 2>/dev/null)" = active ]; then
+  printf '%b firewall NixOS activo\n' "$OK"
+else
+  printf '%b firewall inactivo\n' "$BAD"; ISSUES=$((ISSUES+1))
+fi
+
+hdr "Servicios de red tipicos (solo se listan los activos)"
+ANY=0
+for s in sshd avahi-daemon cups smbd vsftpd nginx; do
+  if [ "$(systemctl is-active "$s" 2>/dev/null)" = active ]; then
+    printf '%b %s activo\n' "$WARN" "$s"; ANY=1
+  fi
+done
+[ $ANY = 0 ] && printf '%b ninguno\n' "$OK"
+
+hdr "SSH"
+if [ -f /etc/ssh/sshd_config ]; then
+  RL=$(grep -Ei '^\s*PermitRootLogin' /etc/ssh/sshd_config | tail -1)
+  PA=$(grep -Ei '^\s*PasswordAuthentication' /etc/ssh/sshd_config | tail -1)
+  case "$RL" in
+    *yes*) printf '%b PermitRootLogin yes\n' "$BAD"; ISSUES=$((ISSUES+1));;
+    *)     printf '%b root login: %s\n' "$OK" "${RL:-default (prohibit-password)}";;
+  esac
+  case "$PA" in
+    *yes*) printf '%b PasswordAuthentication yes\n' "$WARN"; ISSUES=$((ISSUES+1));;
+    *)     printf '%b password auth: %s\n' "$OK" "${PA:-default}";;
+  esac
+else
+  printf '%b sin sshd_config (sshd no configurado)\n' "$OK"
+fi
+
+hdr "sudo"
+if [ $ROOT = 1 ]; then
+  NP=$(grep -rh 'NOPASSWD' /etc/sudoers /etc/sudoers.d 2>/dev/null | grep -v '^\s*#' || true)
+  if [ -n "$NP" ]; then
+    printf '%b reglas NOPASSWD:\n%s\n' "$WARN" "$NP"; ISSUES=$((ISSUES+1))
+  else
+    printf '%b sin NOPASSWD\n' "$OK"
+  fi
+else
+  printf '%s(requiere root)%s\n' "$D" "$N"
+fi
+
+hdr "PATH escribible por otros"
+FOUND=0
+IFS=: read -ra DIRS <<< "$PATH"
+for d in "${DIRS[@]}"; do
+  [ -d "$d" ] || continue
+  W=$(find "$d" -maxdepth 1 -perm -o+w ! -type l 2>/dev/null || true)
+  [ -n "$W" ] && { printf '%b %s\n' "$BAD" "$W"; FOUND=1; ISSUES=$((ISSUES+1)); }
+done
+[ $FOUND = 0 ] && printf '%b limpio\n' "$OK"
+
+hdr "Resumen"
+if [ $ISSUES = 0 ]; then
+  printf '%b 0 hallazgos. opsec decente... por hoy.\n' "$OK"
+else
+  printf '%b %s hallazgo(s). opsec no se instala, se practica.\n' "$WARN" "$ISSUES"
+fi
