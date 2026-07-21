@@ -17,7 +17,8 @@
       [ "$rec" = 1 ] || return 1
       for a in "$@"; do
         case "''${a%/}" in
-          /|/nix|/etc|/home|/usr|/var|/boot|/root|/bin|/lib|/srv|/opt) return 0 ;;
+          # "" cubre la raiz: ''${a%/} de "/" da cadena vacia
+          ""|/|/nix|/etc|/home|/usr|/var|/boot|/root|/bin|/lib|/srv|/opt) return 0 ;;
         esac
       done
       return 1
