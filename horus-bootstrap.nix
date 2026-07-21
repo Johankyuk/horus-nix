@@ -37,7 +37,7 @@ in
     wantedBy = [ "default.target" ];
     wants = [ "network-online.target" ];
     after = [ "network-online.target" ];
-    path = [ pkgs.git pkgs.coreutils pkgs.gnugrep ];
+    path = [ pkgs.git pkgs.coreutils pkgs.gnugrep pkgs.python3 ];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
@@ -73,6 +73,12 @@ in
 
       # Copia solo lo ausente: no pisa lo que horus-theme rota
       cp -rn "$DEST/config/." "$HOME/.config/" 2>/dev/null || true
+
+      # Portabilidad del wallpaper: reescribir la ruta al $HOME real de quien instala.
+      NOCTA="$HOME/.config/noctalia/settings.json"
+      if [ -f "$NOCTA" ]; then
+        ${pkgs.python3}/bin/python3 -c "import sys,json; f=sys.argv[1]; wd=sys.argv[2]; d=json.load(open(f)); d.setdefault('wallpaper',{}); d['wallpaper']['directory']=wd; json.dump(d,open(f,'w'),indent=2)" "$NOCTA" "$HOME/Horus-Project/Wallpapers" 2>/dev/null || true
+      fi
 
       # fastfetch: su config vive en branding/, no en config/
       mkdir -p "$HOME/.config/fastfetch"
