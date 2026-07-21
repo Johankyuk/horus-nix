@@ -77,7 +77,10 @@ in
     path = with pkgs; [ bash coreutils util-linux procps networkmanager bluez python3 fontconfig imagemagick ]
       # Perfil del sistema completo: el launcher antepone customLaunchPrefix
       # (horus-gpu) a todo spawn y necesita resolverlo, igual que foot.
-      ++ [ "/run/current-system/sw" ];
+      ++ [ "/run/wrappers" "/run/current-system/sw" ];
+      # /run/wrappers PRIMERO: ahi vive el sudo setuid de NixOS. Sin el,
+      # los wizards lanzados desde el launcher resuelven el sudo sin setuid
+      # de sw/bin y mueren ("debe ser propiedad del uid 0").
     wantedBy = [ "graphical-session.target" ];
     partOf = [ "graphical-session.target" ];
     after = [ "graphical-session.target" ];
