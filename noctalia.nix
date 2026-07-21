@@ -74,7 +74,7 @@ in
     description = "Noctalia shell (barra + launcher)";
     # PATH del servicio: Noctalia lanza subprocesos con sh (launcher, widgets).
     # Sin esto arranca degradado (barra sí, launcher/disk no).
-    path = with pkgs; [ bash coreutils util-linux procps networkmanager bluez python3 fontconfig imagemagick cliphist wl-clipboard ];
+    path = with pkgs; [ bash coreutils util-linux procps networkmanager bluez python3 fontconfig imagemagick ];
     wantedBy = [ "graphical-session.target" ];
     partOf = [ "graphical-session.target" ];
     after = [ "graphical-session.target" ];
