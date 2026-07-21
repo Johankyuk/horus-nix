@@ -8,6 +8,6 @@
     systemd.services.libvirt-guests.enable = lib.mkForce false;
     virtualisation.spiceUSBRedirection.enable = true;
     programs.virt-manager.enable = true;
-    users.users.kyu.extraGroups = [ "libvirtd" ];
+    users.users.${config.horus.user}.extraGroups = [ "libvirtd" ];
   };
 }

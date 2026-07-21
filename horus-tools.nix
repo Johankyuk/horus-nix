@@ -34,7 +34,7 @@ in
     wantedBy = [ "display-manager.service" ];
     before = [ "display-manager.service" ];
     path = [ horus-tools pkgs.coreutils pkgs.gnugrep ];
-    environment.HORUS_USER_HOME = "/home/kyu";
+    environment.HORUS_USER_HOME = config.horus.home;
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;

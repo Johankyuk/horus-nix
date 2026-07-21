@@ -31,7 +31,7 @@
   services.udev.extraRules = ''
     KERNEL=="hidraw*", SUBSYSTEM=="hidraw", KERNELS=="*0B05:19B6*", MODE="0660", GROUP="input", TAG+="uaccess"
   '';
-  users.users.kyu.extraGroups = [ "input" ];
+  users.users.${config.horus.user}.extraGroups = [ "input" ];
 
   # Hibernación (swap con label del particionado de esta máquina)
   boot.resumeDevice = "/dev/disk/by-label/HORUS-SWAP";

@@ -22,13 +22,13 @@ in
       RemainAfterExit = true;
     };
     script = ''
-      mkdir -p /home/kyu/.config
+      mkdir -p ${config.horus.home}/.config
       for d in niri noctalia foot; do
-        if [ ! -e "/home/kyu/.config/$d" ] && [ -e "${horus-seed-src}/config/$d" ]; then
-          cp -r --no-preserve=mode,ownership "${horus-seed-src}/config/$d" "/home/kyu/.config/$d"
+        if [ ! -e "${config.horus.home}/.config/$d" ] && [ -e "${horus-seed-src}/config/$d" ]; then
+          cp -r --no-preserve=mode,ownership "${horus-seed-src}/config/$d" "${config.horus.home}/.config/$d"
         fi
       done
-      chown -R kyu:users /home/kyu/.config
+      chown -R ${config.horus.user}:users ${config.horus.home}/.config
     '';
   };
 

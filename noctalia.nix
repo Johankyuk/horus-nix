@@ -62,9 +62,9 @@ in
   # usuario y el bootstrap corren en paralelo a la sesion -> race con qs.
   # A nivel sistema es deterministico: no hay sesion todavia.
   systemd.tmpfiles.rules = [
-    "d /home/kyu/.config 0755 kyu users -"
-    "d /home/kyu/.config/quickshell 0755 kyu users -"
-    "L+ /home/kyu/.config/quickshell/noctalia-shell - kyu users - /etc/xdg/quickshell/noctalia-shell"
+    "d ${config.horus.home}/.config 0755 ${config.horus.user} users -"
+    "d ${config.horus.home}/.config/quickshell 0755 ${config.horus.user} users -"
+    "L+ ${config.horus.home}/.config/quickshell/noctalia-shell - ${config.horus.user} users - /etc/xdg/quickshell/noctalia-shell"
   ];
 
   # Noctalia como servicio de usuario: revive solo si muere (a diferencia de
