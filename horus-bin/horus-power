@@ -124,10 +124,16 @@ case "${1:-}" in
         _curva performance "$CURVA_MAX" && ok "Ventiladores al 100%. Restaura: horus-power noheat off"
         ;;
     --actual|actual)
-        echo "Modo GPU:   $(supergfxctl -g 2>/dev/null || echo '?')"
+        # Modo derivado de fuentes nativas (supergfxd era del stack Arch):
+        # dgpu_disable=1 o sin NVIDIA enumerada -> Integrated; si no -> Hybrid.
+        _dis=$(cat /sys/devices/platform/asus-nb-wmi/dgpu_disable 2>/dev/null || echo '?')
+        if [ "$_dis" = 1 ] || ! ls /proc/driver/nvidia/gpus/ &>/dev/null; then _modo=Integrated
+        elif [ "$_dis" = 0 ]; then _modo=Hybrid
+        else _modo='?'; fi
+        echo "Modo GPU:   $_modo"
         echo "Perfil:     $(cat /sys/firmware/acpi/platform_profile 2>/dev/null || echo '?')"
         if nvidia-smi -q -d POWER &>/dev/null; then
-            echo "dGPU:       DESPIERTA ($(nvidia-smi --query-gpu=power.draw,power.limit --format=csv,noheader 2>/dev/null))"
+            echo "dGPU:       DESPIERTA ($(nvidia-smi --query-gpu=power.draw --format=csv,noheader 2>/dev/null))"
         else echo "dGPU:       dormida (D3cold)"; fi
         _en_ac && echo "AC:         conectado" || echo "AC:         batería"
         ;;
