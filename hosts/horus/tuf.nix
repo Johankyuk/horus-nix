@@ -43,4 +43,8 @@
     serviceConfig.Type = "oneshot";
     script = "grep -q \"^GPP0.*enabled\" /proc/acpi/wakeup && echo GPP0 > /proc/acpi/wakeup || true";
   };
+
+  # Watchdog de hardware AMD: no lo usamos y su "watchdog did not stop!"
+  # ensucia la consola al apagar (post-Plymouth, imposible de tapar)
+  boot.blacklistedKernelModules = [ "sp5100_tco" ];
 }
