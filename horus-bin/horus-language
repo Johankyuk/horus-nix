@@ -1,111 +1,132 @@
-#!/bin/bash
-# horus-language — Selector de idioma del sistema (wizard de 1ª corrida).
-#   Cambia el locale (LANG) del sistema. Como Noctalia y SDDM rinden la
-#   fecha con tokens de Qt (ddd/MMM), el reloj sigue al locale solo:
-#   "lun 24 jun" en espanol, "Mon 24 Jun" en ingles. No se parchea ningun
-#   string de formato; solo el locale. El formato de hora (12h AM/PM) es
-#   aparte y no lo toca el idioma.
+#!/usr/bin/env bash
+# horus-language — selector de idioma del sistema (wizard).
+#   Cambia el idioma en TRES capas:
+#     1. Sistema (i18n.defaultLocale en el host)  -> rebuild
+#     2. Noctalia (general.language en settings)  -> reinicia servicio
+#     3. Shortcuts .desktop: bilingues nativos (Name[es]/Name), el locale
+#        del sistema los muestra solos; no los toca este script.
+#   NO commitea ni reinicia sesion: avisa al final.
 #
 #   Uso:
-#     horus-language            selector interactivo (con easter egg)
-#     horus-language es | en    no interactivo
-#     horus-language --dry      muestra lo que haria, sin tocar nada (ni root)
-#     horus-language --actual   idioma/locale activos
+#     horus-language              selector interactivo (con easter egg)
+#     horus-language es | en      no interactivo
+#     horus-language --actual     idioma/locale activos
+#     horus-language --dry        muestra que haria, sin tocar nada
 set -uo pipefail
+P='\033[0;35m'; G='\033[0;32m'; Y='\033[1;33m'; D='\033[2m'; R='\033[0;31m'; NC='\033[0m'
 
-P='\033[0;35m'; G='\033[0;32m'; Y='\033[1;33m'; D='\033[2m'; NC='\033[0m'
+FLAKE="$HOME/horus-nix"
+HOST="$(hostname)"
+CFGNIX="$FLAKE/configuration.nix"
+NOCTA="$HOME/.config/noctalia/settings.json"
+DRY=0
 
-# idioma -> (locale, etiqueta, ejemplo de reloj)
 loc_de()   { case "$1" in es) echo "es_MX.UTF-8";; en) echo "en_US.UTF-8";; esac; }
 nombre_de(){ case "$1" in es) echo "Español";;     en) echo "English";;     esac; }
 reloj_de() { case "$1" in es) echo "lun 24 jun";;  en) echo "Mon 24 Jun";;  esac; }
 
-DRY=0
+_err() { echo -e "${R}✗ $1${NC}" >&2; exit 1; }
+
+[ -f "$CFGNIX" ] || _err "No existe $CFGNIX"
+
+_locale_actual() { grep -oP 'i18n\.defaultLocale\s*=\s*"\K[^"]+' "$CFGNIX" 2>/dev/null; }
+_lang_de_locale(){ case "$1" in es_MX*) echo es;; en_US*) echo en;; *) echo "?";; esac; }
 
 _egg() {
-    {
-    echo ""
-    echo -e "  ${Y}* suck it toby fox${NC}"
-    echo -e "  ${Y}* this is how u translate 1300+ code lines${NC}"
-    echo -e "  ${Y}* ez bimbimbambam${NC}"
-    echo ""
+    { echo ""
+      echo -e "  ${Y}* suck it toby fox${NC}"
+      echo -e "  ${Y}* this is how u translate 1300+ code lines${NC}"
+      echo -e "  ${Y}* ez bimbimbambam${NC}"
+      echo ""
     } >&2
     sleep 1
 }
 
 _selector() {
+    local actual_lang; actual_lang="$(_lang_de_locale "$(_locale_actual)")"
     while :; do
-        {
-        echo -e "${P}╭───────────────────────────╮${NC}"
-        echo -e "${P}│${NC}   Idioma / Language        ${P}│${NC}"
-        echo -e "${P}╰───────────────────────────╯${NC}"
-        echo -e "    ${G}1${NC}) Español"
-        echo -e "    ${G}2${NC}) English"
-        echo -ne "  > "
+        { echo -e "${P}╭───────────────────────────╮${NC}"
+          echo -e "${P}│${NC}   Idioma / Language        ${P}│${NC}"
+          echo -e "${P}╰───────────────────────────╯${NC}"
+          mk(){ [ "$1" = "$actual_lang" ] && echo -ne "${G}●${NC} " || echo -ne "  "; }
+          echo -e "    ${G}1${NC}) $(mk es)Español"
+          echo -e "    ${G}2${NC}) $(mk en)English"
+          echo -ne "  > "
         } >&2
         read -r opt
         case "${opt,,}" in
             1|es|espanol|español) echo es; return 0 ;;
             2|en|english)         echo en; return 0 ;;
-            toby|3|deltarune|bimbimbambam) _egg ;;   # easter egg: sigue preguntando
+            toby|3|deltarune|bimbimbambam) _egg ;;
+            "") echo -e "  ${Y}Cancelado.${NC}" >&2; return 1 ;;
             *) echo -e "  ${Y}Opcion no valida.${NC}" >&2 ;;
         esac
     done
 }
 
 _aplicar() {
-    local lang="$1" locale; locale="$(loc_de "$lang")"
-    local nom; nom="$(nombre_de "$lang")"; local rel; rel="$(reloj_de "$lang")"
+    local lang="$1" locale nom rel actual_locale
+    locale="$(loc_de "$lang")"; nom="$(nombre_de "$lang")"; rel="$(reloj_de "$lang")"
+    actual_locale="$(_locale_actual)"
 
     echo -e "${P}Idioma:${NC} $nom   ${D}($locale)${NC}"
 
     if [ "$DRY" -eq 1 ]; then
         echo -e "${D}-- modo --dry: no se toca nada --${NC}"
-        echo "  1) Asegurar en /etc/locale.gen:  ${locale%% *} UTF-8  (descomentar)"
-        echo "  2) sudo locale-gen"
-        echo "  3) sudo tee /etc/locale.conf  <- LANG=$locale"
-        echo -e "  Reloj resultante: ${G}$rel${NC}   (Noctalia y SDDM, tras re-login/reboot)"
+        echo "  1) i18n.defaultLocale: $actual_locale -> $locale  (+ rebuild)"
+        echo "  2) Noctalia general.language -> $lang  (+ reinicia servicio)"
+        echo "  3) Shortcuts: bilingues, el locale los muestra solos"
+        echo -e "  Reloj resultante: ${G}$rel${NC}"
         return 0
     fi
 
-    # 1) asegurar el locale habilitado en /etc/locale.gen
-    if grep -qE "^[#[:space:]]*${locale}[[:space:]]+UTF-8" /etc/locale.gen 2>/dev/null; then
-        sudo sed -i -E "s|^[#[:space:]]*(${locale}[[:space:]]+UTF-8)|\1|" /etc/locale.gen
+    if [ "$locale" = "$actual_locale" ]; then
+        echo -e "${Y}El sistema ya esta en $locale.${NC} Sincronizando Noctalia por si acaso."
     else
-        echo "${locale} UTF-8" | sudo tee -a /etc/locale.gen >/dev/null
+        # --- CAPA 1: locale del sistema (declarativo) ---
+        cp "$CFGNIX" "$CFGNIX.bak.$(date +%s)"
+        sed -i "s|i18n\.defaultLocale = \"$actual_locale\";|i18n.defaultLocale = \"$locale\";|" "$CFGNIX"
+        [ "$(_locale_actual)" = "$locale" ] || _err "El sed de i18n no aplico. Revisa $CFGNIX"
+        echo -e "  ${G}[1]${NC} i18n.defaultLocale -> $locale"
+        echo -e "  ${P}→ Reconstruyendo sistema...${NC}"
+        sudo nixos-rebuild switch --flake "$FLAKE" || _err "Rebuild fallo"
     fi
-    # 2) generar
-    sudo locale-gen >/dev/null 2>&1 && echo -e "  ${G}[+]${NC} locale generado: $locale"
-    # 3) fijar como locale del sistema
-    if [ "$(. /etc/locale.conf 2>/dev/null; echo "${LANG:-}")" = "$locale" ]; then
-        echo -e "  ${P}[=]${NC} /etc/locale.conf ya estaba en $locale"
+
+    # --- CAPA 2: idioma de Noctalia ---
+    if [ -f "$NOCTA" ]; then
+        python3 -c "import sys,json; f=sys.argv[1]; l=sys.argv[2]; d=json.load(open(f)); d.setdefault('general',{}); d['general']['language']=l; json.dump(d,open(f,'w'),indent=2)" "$NOCTA" "$lang" \
+            && echo -e "  ${G}[2]${NC} Noctalia general.language -> $lang"
+        systemctl --user restart noctalia 2>/dev/null && echo -e "  ${G}[2]${NC} servicio noctalia reiniciado"
     else
-        printf 'LANG=%s\n' "$locale" | sudo tee /etc/locale.conf >/dev/null
-        echo -e "  ${G}[+]${NC} /etc/locale.conf -> LANG=$locale"
+        echo -e "  ${Y}[2]${NC} settings de Noctalia no encontrado; se aplicara al proximo login"
     fi
-    # estado para el resto del sistema (ej. wizard de tema, scripts)
+
+    # estado para otros scripts
     mkdir -p "$HOME/.config/horus"; echo "$lang" > "$HOME/.config/horus/idioma"
 
-    echo -e "  Reloj: ${G}$rel${NC}  →  toma efecto al cerrar sesión / reiniciar."
+    echo ""
+    echo -e "  ${G}✓ Idioma: $nom.${NC} Reloj: ${G}$rel${NC}"
+    echo -e "  ${Y}⚠ Cierra sesion para que TODO (apps, shortcuts) tome el locale nuevo.${NC}"
+    echo -e "  ${D}El cambio en configuration.nix no esta commiteado; revisalo.${NC}"
 }
 
 main() {
     local lang=""
     for a in "$@"; do
         case "$a" in
-            --dry)     DRY=1 ;;
+            --dry)  DRY=1 ;;
             --actual)
-                echo "idioma: $(cat "$HOME/.config/horus/idioma" 2>/dev/null || echo '(sin definir)')"
-                echo "LANG:   $(. /etc/locale.conf 2>/dev/null; echo "${LANG:-?}")"
+                echo -e "${P}Locale sistema:${NC} $(_locale_actual)"
+                echo -e "${P}Noctalia lang: ${NC} $(python3 -c "import json;print(json.load(open('$NOCTA')).get('general',{}).get('language','?'))" 2>/dev/null || echo '?')"
+                echo -e "${P}Estado Horus:  ${NC} $(cat "$HOME/.config/horus/idioma" 2>/dev/null || echo '(sin definir)')"
                 return 0 ;;
             -h|--help) sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; return 0 ;;
-            es|en)     lang="$a" ;;
+            es|en)  lang="$a" ;;
             *) echo -e "${Y}Argumento desconocido: $a${NC}"; exit 2 ;;
         esac
     done
-
-    [ -z "$lang" ] && lang="$(_selector)"
-    case "$lang" in es|en) ;; *) echo -e "${Y}Idioma desconocido (usa es|en)${NC}"; exit 2 ;; esac
+    [ -z "$lang" ] && { lang="$(_selector)" || return 0; }
+    case "$lang" in es|en) ;; *) _err "Idioma desconocido (usa es|en)";; esac
     _aplicar "$lang"
 }
 main "$@"

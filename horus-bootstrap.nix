@@ -92,16 +92,19 @@ in
       APPS="$HOME/.local/share/applications"
       mkdir -p "$APPS"
       SW=/run/current-system/sw/bin
-      gen_desktop() {  # $1=id $2=nombre $3=exec
-        printf '[Desktop Entry]\nType=Application\nName=%s\nComment=Asistente Horus\nExec=%s\nIcon=preferences-system\nTerminal=false\nCategories=Settings;Utility;\n' \
-          "$2" "$3" > "$APPS/horus-$1.desktop"
+      gen_desktop() {  # $1=id $2=nombre(en) $3=exec $4=nombre(es, opcional)
+        {
+          printf '[Desktop Entry]\nType=Application\nName=%s\n' "$2"
+          [ -n "''${4:-}" ] && printf 'Name[es]=%s\n' "$4"
+          printf 'Comment=Asistente Horus\nExec=%s\nIcon=preferences-system\nTerminal=false\nCategories=Settings;Utility;\n' "$3"
+        } > "$APPS/horus-$1.desktop"
       }
-      [ -x "$SW/horus-theme" ]     && gen_desktop theme     "Horus Theme"     "foot -e $SW/horus-theme"
-      [ -x "$SW/horus-privacy" ]   && gen_desktop privacy   "Horus Privacy"   "foot -e $SW/horus-privacy"
-      [ -x "$SW/horus-estado" ]    && gen_desktop status    "Horus Status"    "foot -e bash -c \"$SW/horus-estado; read -rsn1\""
+      [ -x "$SW/horus-theme" ]     && gen_desktop theme     "Horus Theme"     "foot -e $SW/horus-theme"       "Horus Tema"
+      [ -x "$SW/horus-privacy" ]   && gen_desktop privacy   "Horus Privacy"   "foot -e $SW/horus-privacy"     "Horus Privacidad"
+      [ -x "$SW/horus-estado" ]    && gen_desktop status    "Horus Status"    "foot -e bash -c \"$SW/horus-estado; read -rsn1\""    "Horus Estado"
       [ -x "$SW/horus-update" ]    && gen_desktop update    "Horus Update"    "foot -e bash -c \"$SW/horus-update; read -rsn1\""
-      [ -x "$SW/horus-language" ]  && gen_desktop language  "Horus Language"  "foot -e $SW/horus-language"
-      [ -x "$SW/horus-power" ]     && gen_desktop power     "Horus Power"     "foot -e $SW/horus-power"
+      [ -x "$SW/horus-language" ]  && gen_desktop language  "Horus Language"  "foot -e $SW/horus-language"    "Horus Idioma"
+      [ -x "$SW/horus-power" ]     && gen_desktop power     "Horus Power"     "foot -e $SW/horus-power"       "Horus Energía"
       [ -x "$SW/horus-mc-shaders" ] && gen_desktop mcshaders "Horus MC Shaders" "foot -e bash -c \"$SW/horus-mc-shaders; read -rsn1\""
       [ -x "$SW/horus-kernel" ]    && gen_desktop kernel    "Horus Kernel"    "foot -e $SW/horus-kernel"
       # Ocultar .desktop de sistema en el launcher (override usuario, reversible)
