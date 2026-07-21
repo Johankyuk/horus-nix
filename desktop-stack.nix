@@ -1,29 +1,40 @@
 { config, pkgs, lib, ... }:
 let
-  # Lanzadores de wizards Horus. En CachyOS los genera setup_master.sh;
-  # aqui son declarativos. Exec por nombre: la sesion NixOS resuelve
-  # /run/current-system/sw/bin en PATH.
-  mkWizard = id: nombre: cmd: pkgs.writeTextFile {
+  # Lanzadores de wizards Horus — FUENTE UNICA (antes tambien los generaba
+  # horus-bootstrap; eliminado). Rutas absolutas al store: Noctalia corre como
+  # servicio systemd con PATH curado y no resuelve nombres a secas.
+  foot = "${pkgs.foot}/bin/foot";
+  bash = "${pkgs.bash}/bin/bash";
+  sw = "/run/current-system/sw/bin";
+  mkWizard = id: en: es: cmd: pkgs.writeTextFile {
     name = "horus-${id}-desktop";
     destination = "/share/applications/horus-${id}.desktop";
     text = ''
       [Desktop Entry]
       Type=Application
-      Name=${nombre}
-      Comment=Asistente Horus
+      Name=${en}
+      Name[es]=${es}
+      Comment=Horus wizard
+      Comment[es]=Asistente Horus
       Exec=${cmd}
       Icon=preferences-system
       Terminal=false
       Categories=Settings;Utility;
     '';
   };
+  # Wizards que terminan al instante: pausa para que foot no se cierre
+  hold = bin: "${foot} -e ${bash} -c '${sw}/${bin}; read -rsn1'";
 in
 {
   environment.systemPackages = with pkgs; [
-    (mkWizard "tema" "Horus Tema" "foot -e horus-theme")
-    (mkWizard "privacidad" "Horus Privacidad" "foot -e horus-privacy")
-    # horus-estado termina al instante: pausa para que foot no se cierre
-    (mkWizard "estado" "Horus Estado" "foot -e bash -c 'horus-estado; read -rsn1'")
+    (mkWizard "theme"     "Horus Theme"      "Horus Tema"        "${foot} -e ${sw}/horus-theme")
+    (mkWizard "privacy"   "Horus Privacy"    "Horus Privacidad"  "${foot} -e ${sw}/horus-privacy")
+    (mkWizard "language"  "Horus Language"   "Horus Idioma"      "${foot} -e ${sw}/horus-language")
+    (mkWizard "power"     "Horus Power"      "Horus Energía"     "${foot} -e ${sw}/horus-power")
+    (mkWizard "kernel"    "Horus Kernel"     "Horus Kernel"      "${foot} -e ${sw}/horus-kernel")
+    (mkWizard "status"    "Horus Status"     "Horus Estado"      (hold "horus-estado"))
+    (mkWizard "update"    "Horus Update"     "Horus Update"      (hold "horus-update"))
+    (mkWizard "mcshaders" "Horus MC Shaders" "Horus MC Shaders"  (hold "horus-mc-shaders"))
 
     # Iconos y cursor del stack (el overlay Horus-Folders lo genera horus-theme)
     pcmanfm-qt
