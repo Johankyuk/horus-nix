@@ -67,6 +67,24 @@ in
     "L+ /home/kyu/.config/quickshell/noctalia-shell - kyu users - /etc/xdg/quickshell/noctalia-shell"
   ];
 
+  # Noctalia como servicio de usuario: revive solo si muere (a diferencia de
+  # spawn-at-startup de Niri, que solo lanza una vez). ExecStart usa el wrapper
+  # noctalia-run (qs del fork + config congelada del store).
+  systemd.user.services.noctalia = {
+    description = "Noctalia shell (barra + launcher)";
+    # PATH del servicio: Noctalia lanza subprocesos con sh (launcher, widgets).
+    # Sin esto arranca degradado (barra sí, launcher/disk no).
+    path = with pkgs; [ bash coreutils util-linux procps ];
+    wantedBy = [ "graphical-session.target" ];
+    partOf = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" ];
+    serviceConfig = {
+      ExecStart = "${noctalia-qs}/bin/qs -c noctalia-shell";
+      Restart = "on-failure";
+      RestartSec = 2;
+    };
+  };
+
   environment.systemPackages = [
     noctalia-qs
     noctalia-run
