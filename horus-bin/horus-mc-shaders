@@ -14,7 +14,17 @@ set -euo pipefail
 SM_URL="https://github.com/GameParrot/mcpelauncher-shadersmod/releases/download/v1.1/shadersmod-android-x86_64.zip"
 DATA="$HOME/.var/app/io.mrarm.mcpelauncher/data/mcpelauncher"
 MODS="$DATA/mods"; SHADERS="$DATA/shaders"; RP="$DATA/games/com.mojang/resource_packs"
-MCPACK="${1:-$(ls -1t "$HOME/Descargas"/newb-classic*.mcpack "$HOME/Downloads"/newb-classic*.mcpack "$HOME/Documentos"/newb-classic*.mcpack "$HOME/Documents"/newb-classic*.mcpack 2>/dev/null | head -1)}"
+# Busca el .mcpack mas reciente en las rutas conocidas sin morir por set -e/pipefail
+_buscar_mcpack() {
+  local hit=""
+  for d in "$HOME/Descargas" "$HOME/Downloads" "$HOME/Documentos" "$HOME/Documents"; do
+    for p in "$d"/newb-classic*.mcpack; do
+      [ -f "$p" ] && { hit="$p"; break 2; }
+    done
+  done
+  printf '%s' "$hit"
+}
+MCPACK="${1:-$(_buscar_mcpack)}"
 SUBPACK="${2:-}"
 
 command -v unzip >/dev/null || { echo "ERROR: instala unzip (agregar unzip al flake)"; exit 1; }

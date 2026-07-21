@@ -10,4 +10,10 @@
     extraGroups = [ "wheel" "networkmanager" "video" ];
     shell = pkgs.bash;
   };
+
+  # Bluetooth: bluez + bluetoothctl (Noctalia lo necesita); apagado al boot
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = false;
+  };
 }
