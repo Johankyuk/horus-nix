@@ -10,17 +10,14 @@ HOST="$(hostname)"
 if [ "$HOST" = "nixos" ] || [ -z "$HOST" ]; then
   read -rp "Nombre para esta máquina (hostname/target): " HOST </dev/tty
 fi
-CACHE_OPTS=(--option extra-substituters "https://chaotic-nyx.cachix.org"
-            --option extra-trusted-public-keys "chaotic-nyx.cachix.org-1:HfnXSw4pj95iI/n17rIDy40agHj12WfF+Gqk6SonIT8=")
-
 echo "[1/5] Clonando flake..."
 [ -d "$DEST/.git" ] || nix-shell -p git --run "git clone $REPO_HTTPS $DEST"
 
 echo "[2/5] Registrando esta máquina como host '$HOST'..."
 if [ ! -d "$DEST/hosts/$HOST" ]; then
-  echo "Kernel: 1) cachyos (gaming, default)  2) zen  3) latest  4) lts  5) hardened"
-  read -rp "Elige [1-5]: " K </dev/tty
-  case "$K" in 2) KERNEL=zen;; 3) KERNEL=latest;; 4) KERNEL=lts;; 5) KERNEL=hardened;; *) KERNEL=cachyos;; esac
+  echo "Kernel: 1) zen (desktop/gaming, default)  2) latest  3) lts  4) hardened"
+  read -rp "Elige [1-4]: " K </dev/tty
+  case "$K" in 2) KERNEL=latest;; 3) KERNEL=lts;; 4) KERNEL=hardened;; *) KERNEL=zen;; esac
   mkdir -p "$DEST/hosts/$HOST"
   cp /etc/nixos/hardware-configuration.nix "$DEST/hosts/$HOST/"
   cat > "$DEST/hosts/$HOST/default.nix" <<EOF
@@ -35,8 +32,8 @@ EOF
   nix-shell -p git --run "git -C $DEST add hosts/$HOST"   # flakes solo ven tracked
 fi
 
-echo "[3/5] Rebuild (cache Chaotic activo: kernel CachyOS precompilado)..."
-sudo nixos-rebuild switch --flake "$DEST#$HOST" "${CACHE_OPTS[@]}"
+echo "[3/5] Rebuild (todo desde cache.nixos.org: kernel y drivers precompilados)..."
+sudo nixos-rebuild switch --flake "$DEST#$HOST"
 
 echo "[4/5] Cursores Bibata pre-generados (del repo)..."
 if [ ! -d "$HOME/.icons/Bibata-Horus-morado" ]; then
@@ -45,7 +42,17 @@ if [ ! -d "$HOME/.icons/Bibata-Horus-morado" ]; then
     || echo "[i] Tarball no encontrado; genera con: horus-cursor --all (~2h)"
 fi
 
-echo "[5/5] Remote a SSH..."
+echo "[5/6] Contrasena del usuario..."
+# mutableUsers=true: el usuario nace sin contrasena. Ponerla ahora (local, no
+# viaja al repo). Si ya tiene una (reinstalacion sobre usuario existente), skip.
+if ! sudo passwd -S "$USER" 2>/dev/null | grep -q " P "; then
+  echo "El usuario '$USER' necesita contrasena. Definela:"
+  passwd
+else
+  echo "  '$USER' ya tiene contrasena; no se toca."
+fi
+
+echo "[6/6] Remote a SSH..."
 nix-shell -p git --run "git -C $DEST remote set-url origin $REPO_SSH"
 
 echo "✓ terminado — reinicia para entrar a Horus"

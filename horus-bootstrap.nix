@@ -90,10 +90,14 @@ in
         printf '[Desktop Entry]\nType=Application\nName=%s\nComment=Asistente Horus\nExec=%s\nIcon=preferences-system\nTerminal=false\nCategories=Settings;Utility;\n' \
           "$2" "$3" > "$APPS/horus-$1.desktop"
       }
-      [ -x "$SW/horus-theme" ]   && gen_desktop tema       "Horus Tema"       "foot -e $SW/horus-theme"
-      [ -x "$SW/horus-privacy" ] && gen_desktop privacidad "Horus Privacidad" "foot -e $SW/horus-privacy"
-      [ -x "$SW/horus-estado" ]  && gen_desktop estado     "Horus Estado"     "foot -e bash -c \"$SW/horus-estado; read -rsn1\""
-      [ -x "$SW/horus-update" ]  && gen_desktop update     "Horus Update"     "foot -e bash -c \"$SW/horus-update; read -rsn1\""
+      [ -x "$SW/horus-theme" ]     && gen_desktop theme     "Horus Theme"     "foot -e $SW/horus-theme"
+      [ -x "$SW/horus-privacy" ]   && gen_desktop privacy   "Horus Privacy"   "foot -e $SW/horus-privacy"
+      [ -x "$SW/horus-estado" ]    && gen_desktop status    "Horus Status"    "foot -e bash -c \"$SW/horus-estado; read -rsn1\""
+      [ -x "$SW/horus-update" ]    && gen_desktop update    "Horus Update"    "foot -e bash -c \"$SW/horus-update; read -rsn1\""
+      [ -x "$SW/horus-language" ]  && gen_desktop language  "Horus Language"  "foot -e $SW/horus-language"
+      [ -x "$SW/horus-power" ]     && gen_desktop power     "Horus Power"     "foot -e $SW/horus-power"
+      [ -x "$SW/horus-mc-shaders" ] && gen_desktop mcshaders "Horus MC Shaders" "foot -e bash -c \"$SW/horus-mc-shaders; read -rsn1\""
+      [ -x "$SW/horus-kernel" ]    && gen_desktop kernel    "Horus Kernel"    "foot -e $SW/horus-kernel"
       # Ocultar .desktop de sistema en el launcher (override usuario, reversible)
       for _h in avahi-discover bssh bvnc qv4l2 qvidcap foot footclient foot-server \
                 qt6ct xarchiver btop micro vim nvim htop \

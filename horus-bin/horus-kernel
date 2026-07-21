@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# horus-kernel — selector de kernel del sistema (wizard).
+#   Edita horus.kernel en hosts/<hostname>/default.nix y reconstruye.
+#   NO commitea ni reinicia: avisa al final para que lo hagas tu.
+#
+#   Uso:
+#     horus-kernel                selector interactivo
+#     horus-kernel zen|latest|lts|hardened   no interactivo
+#     horus-kernel --actual       muestra el kernel configurado y el activo
+#     horus-kernel --dry          muestra que haria, sin tocar nada
+set -uo pipefail
+P='\033[0;35m'; G='\033[0;32m'; Y='\033[1;33m'; D='\033[2m'; R='\033[0;31m'; NC='\033[0m'
+
+FLAKE="$HOME/horus-nix"
+HOST="$(hostname)"
+HOSTFILE="$FLAKE/hosts/$HOST/default.nix"
+DRY=0
+
+VARIANTES=(zen latest lts hardened)
+desc_de() {
+  case "$1" in
+    zen)      echo "desktop responsivo, BORE (gaming/uso diario)";;
+    latest)   echo "mainline mas reciente de nixpkgs";;
+    lts)      echo "estable de soporte largo (default NixOS)";;
+    hardened) echo "endurecido en seguridad, menor rendimiento";;
+  esac
+}
+
+_err() { echo -e "${R}✗ $1${NC}" >&2; exit 1; }
+
+[ -f "$HOSTFILE" ] || _err "No existe $HOSTFILE (¿hostname correcto?)"
+
+_actual_cfg() { grep -oP 'horus\.kernel\s*=\s*"\K[^"]+' "$HOSTFILE" 2>/dev/null; }
+
+# --- flags no interactivos ---
+if [ $# -gt 0 ]; then
+  case "$1" in
+    --actual)
+      echo -e "${P}Kernel configurado:${NC} $(_actual_cfg)"
+      echo -e "${P}Kernel activo:${NC}     $(uname -r)"
+      exit 0;;
+    --dry) DRY=1; shift;;
+    zen|latest|lts|hardened) SEL="$1";;
+    *) _err "Variante desconocida: $1 (usa: ${VARIANTES[*]})";;
+  esac
+fi
+
+ACTUAL="$(_actual_cfg)"
+
+# --- selector interactivo si no se dio variante ---
+if [ -z "${SEL:-}" ]; then
+  {
+  echo -e "${P}╭────────────────────────────────╮${NC}"
+  echo -e "${P}│${NC}   Kernel del sistema            ${P}│${NC}"
+  echo -e "${P}╰────────────────────────────────╯${NC}"
+  echo ""
+  i=1
+  for v in "${VARIANTES[@]}"; do
+    marca="  "; [ "$v" = "$ACTUAL" ] && marca="${G}●${NC} "
+    echo -e "  $i) $marca${v}  ${D}$(desc_de "$v")${NC}"
+    i=$((i+1))
+  done
+  echo ""
+  echo -e "  ${D}Actual: ${ACTUAL}. Enter para cancelar.${NC}"
+  } >&2
+  read -rp "  Elige [1-4]: " n </dev/tty
+  [ -z "$n" ] && { echo -e "${Y}Cancelado.${NC}" >&2; exit 0; }
+  case "$n" in
+    1) SEL=zen;; 2) SEL=latest;; 3) SEL=lts;; 4) SEL=hardened;;
+    *) _err "Opcion invalida";;
+  esac
+fi
+
+if [ "$SEL" = "$ACTUAL" ]; then
+  echo -e "${Y}El kernel ya es '${SEL}'. Nada que hacer.${NC}"
+  exit 0
+fi
+
+if [ "$DRY" = "1" ]; then
+  echo -e "${P}[dry]${NC} Cambiaria horus.kernel: ${ACTUAL} → ${SEL}"
+  echo -e "${P}[dry]${NC} En: $HOSTFILE"
+  echo -e "${P}[dry]${NC} Luego: sudo nixos-rebuild switch --flake $FLAKE"
+  exit 0
+fi
+
+# --- aplicar ---
+cp "$HOSTFILE" "$HOSTFILE.bak.$(date +%s)"
+sed -i "s/horus\.kernel = \"$ACTUAL\";/horus.kernel = \"$SEL\";/" "$HOSTFILE"
+NUEVO="$(_actual_cfg)"
+[ "$NUEVO" = "$SEL" ] || _err "El sed no aplico (kernel sigue en $NUEVO). Revisa $HOSTFILE"
+
+echo -e "${G}→${NC} horus.kernel: ${ACTUAL} → ${SEL}"
+echo -e "${P}→ Reconstruyendo (bajara el kernel de cache.nixos.org)...${NC}"
+sudo nixos-rebuild switch --flake "$FLAKE"
+
+echo ""
+echo -e "${G}✓ Kernel '${SEL}' construido.${NC}"
+echo -e "${Y}⚠ Reinicia para arrancar con el kernel nuevo (sigues en $(uname -r)).${NC}"
+echo -e "${D}  El cambio en $HOSTFILE no esta commiteado; revisalo y commitea si te sirve.${NC}"
