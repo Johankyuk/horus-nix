@@ -38,10 +38,20 @@
 
   # GPP0 (root port dGPU) despierta la máquina al hibernar
   systemd.services.acpi-wakeup-fix = {
-    description = "Deshabilita wakeup ACPI de GPP0 (aborta hibernacion)";
+    description = "Deshabilita wakeups ACPI S4 que abortan la hibernacion";
     wantedBy = [ "multi-user.target" ];
     serviceConfig.Type = "oneshot";
-    script = "grep -q \"^GPP0.*enabled\" /proc/acpi/wakeup && echo GPP0 > /proc/acpi/wakeup || true";
+    serviceConfig.RemainAfterExit = true;
+    # GPP0/GPP5/GP11 = root ports PCIe; XHC* = controladores USB;
+    # NHI0 = USB4/Thunderbolt. Cualquiera dispara un wakeup event en el
+    # handoff final a firmware y el kernel hace rollback de la imagen.
+    script = ''
+      for dev in GPP0 GPP5 GP11 XHC0 XHC1 XHC3 XHC4 NHI0; do
+        if grep -qE "^$dev[[:space:]].*\*enabled" /proc/acpi/wakeup; then
+          echo "$dev" > /proc/acpi/wakeup
+        fi
+      done
+    '';
   };
 
   # Watchdog de hardware AMD: no lo usamos y su "watchdog did not stop!"
