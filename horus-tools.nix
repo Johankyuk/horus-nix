@@ -48,7 +48,10 @@ in
     wantedBy = [ "graphical-session.target" ];
     partOf = [ "graphical-session.target" ];
     after = [ "graphical-session.target" ];
-    path = [ horus-tools pkgs.coreutils pkgs.gnugrep pkgs.systemd pkgs.dbus pkgs.power-profiles-daemon ];
+    # asusctl (fan curves) y sudo con setuid viven fuera del store: sin estos
+    # dos, command -v asusctl falla y el bloque de curvas se salta en silencio.
+    path = [ horus-tools pkgs.coreutils pkgs.gnugrep pkgs.systemd pkgs.dbus pkgs.power-profiles-daemon ]
+      ++ [ "/run/wrappers" "/run/current-system/sw" ];
     serviceConfig = { Restart = "on-failure"; RestartSec = "5s"; };
     script = "exec horus-gpu-watch";
   };
