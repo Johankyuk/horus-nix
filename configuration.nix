@@ -2,6 +2,7 @@
 
 {
   imports = [
+    ./modules/fan-curves.nix
     ./modules/clear-fb.nix
     ./modules/kernel.nix
     ./noctalia.nix
