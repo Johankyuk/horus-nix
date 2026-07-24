@@ -4,3 +4,6 @@ result
 *.bak.*
 run-vm-host.sh
 __pycache__/
+
+# backups automaticos de sesiones de parcheo
+*.bak.*

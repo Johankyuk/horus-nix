@@ -24,7 +24,20 @@
     in {
       nixosConfigurations =
         # target generico para la VM de pruebas (sin hardware)
-        { horus-vm = mkSystem [ ]; }
+        {
+          horus-vm = mkSystem [
+            ({ config, ... }: {
+              # La VM no tiene carpeta en hosts/, asi que declara aqui lo
+              # minimo que los modulos comunes esperan del host.
+              horus.user = "kyu";
+              users.users.${config.horus.user} = {
+                isNormalUser = true;
+                extraGroups = [ "wheel" "networkmanager" "video" ];
+                initialPassword = "horus";
+              };
+            })
+          ];
+        }
         # cada carpeta en hosts/ es un target real (nombre = hostname)
         // nixpkgs.lib.genAttrs hostNames (name: mkSystem [ (./hosts + "/${name}") ]);
     };

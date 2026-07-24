@@ -1,11 +1,17 @@
 { config, pkgs, lib, ... }:
 
 {
-  imports = [ ./modules/kernel.nix ./noctalia.nix ./horus-tools.nix ./horus-bootstrap.nix
+  imports = [
+    ./modules/clear-fb.nix
+    ./modules/kernel.nix
+    ./noctalia.nix
+    ./horus-tools.nix
+    ./horus-bootstrap.nix
     ./sddm.nix
     ./desktop-stack.nix
     ./gtk.nix
-    ./modules/apps ];
+    ./modules/apps
+  ];
 
   # Permitir paquetes no libres (driver NVIDIA)
   nixpkgs.config.allowUnfree = true;
