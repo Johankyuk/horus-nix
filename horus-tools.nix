@@ -65,6 +65,24 @@ in
     };
   };
 
+  # Shell propia (quickshell sobre niri). Como servicio y no en autostart.kdl
+  # porque el OSD de Noctalia ya esta apagado: si esta muere, Kyu se queda sin
+  # indicador de volumen ni brillo hasta reiniciar la sesion.
+  systemd.user.services.horus-shell = {
+    description = "Horus shell (OSD y modulos propios)";
+    # qs vive en el perfil del sistema; el PATH de un servicio no es el del shell.
+    path = with pkgs; [ bash coreutils fontconfig ]
+      ++ [ "/run/wrappers" "/run/current-system/sw" ];
+    wantedBy = [ "graphical-session.target" ];
+    partOf = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" ];
+    serviceConfig = {
+      ExecStart = "${horus-tools}/bin/horus-shell";
+      Restart = "on-failure";
+      RestartSec = 2;
+    };
+  };
+
   systemd.user.services.horus-gpu-watch = {
     description = "Vigilante de perfil GPU (PRIME por AC/bateria)";
     wantedBy = [ "graphical-session.target" ];
