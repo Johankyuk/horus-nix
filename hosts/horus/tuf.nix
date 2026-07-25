@@ -16,6 +16,12 @@
   };
 
   services.asusd.enable = true;
+
+  # asus-shutdown difiere su salida ante SIGTERM (por diseno: es el handler del
+  # apagado). En un nixos-rebuild systemd la detiene, espera 90s y aborta el
+  # switch entero con exit 4. No debe reiniciarse en caliente: se recarga sola
+  # en el proximo boot.
+  systemd.services.asus-shutdown.restartIfChanged = false;
   systemd.services.battery-limit = {
     description = "Límite de carga al 80%";
     wantedBy = [ "multi-user.target" ];
