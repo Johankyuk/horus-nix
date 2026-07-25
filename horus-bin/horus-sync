@@ -12,6 +12,8 @@ err(){ echo -e "${R}[x]${N} $1"; }; log(){ echo -e "${P}[sync]${N} $1"; }
 
 REPOS=("$HOME/horus-nix")
 [ -d "$HOME/Horus-Project/.git" ] && REPOS+=("$HOME/Horus-Project")
+[ -d "$HOME/horus-shell/.git" ] && REPOS+=("$HOME/horus-shell")
+[ -d "$HOME/horus-shell/.git" ] && REPOS+=("$HOME/horus-shell")
 
 
 
