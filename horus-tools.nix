@@ -78,7 +78,7 @@ in
     after = [ "graphical-session.target" ];
     serviceConfig = {
       ExecStart = "${horus-tools}/bin/horus-shell";
-      Restart = "on-failure";
+      Restart = "always";
       RestartSec = 2;
     };
   };
