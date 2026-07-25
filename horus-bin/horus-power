@@ -50,13 +50,20 @@ _perfil(){
 _en_ac(){ for p in /sys/class/power_supply/*/online; do
         [ -r "$p" ] && [ "$(cat "$p" 2>/dev/null)" = "1" ] && return 0; done; return 1; }
 
-# Modo derivado de fuentes nativas (supergfxd era del stack Arch):
-# dgpu_disable=1 o sin NVIDIA enumerada -> Integrated; si no -> Hybrid.
-_modo_actual(){
+# El firmware solo aplica dgpu_disable al arrancar, asi que hay DOS estados:
+# el real (esta enumerada o no) y el pendiente (lo escrito en el nodo).
+_dgpu_presente(){ ls /proc/driver/nvidia/gpus/ 2>/dev/null | grep -q . ; }
+_modo_actual(){ if _dgpu_presente; then echo Hybrid; else echo Integrated; fi; }
+_modo_pendiente(){
     local dis; dis=$(cat "$DGPU" 2>/dev/null || echo '?')
-    if [ "$dis" = 1 ] || ! ls /proc/driver/nvidia/gpus/ &>/dev/null; then echo Integrated
-    elif [ "$dis" = 0 ]; then echo Hybrid
-    else echo '?'; fi
+    case "$dis" in 0) echo Hybrid ;; 1) echo Integrated ;; *) echo '?' ;; esac
+}
+# "apagada por firmware" != "dormida": la primera no existe para el sistema.
+_estado_dgpu(){
+    if ! _dgpu_presente; then echo "apagada por firmware (no enumerada)"
+    elif nvidia-smi -q -d POWER &>/dev/null; then
+        echo "DESPIERTA ($(nvidia-smi --query-gpu=power.draw --format=csv,noheader 2>/dev/null))"
+    else echo "dormida (D3cold)"; fi
 }
 
 # ── dGPU por firmware (asus-nb-wmi). Sustituye a supergfxctl del stack Arch ──
@@ -94,11 +101,11 @@ _wizard(){
     [ -t 0 ] || { echo "uso: horus-power [silencio|equilibrado|rendimiento|gpu-off|gpu-on|noheat [off]|--actual]"; return 0; }
     local opt modo perfil ac g1 g2 p1 p2 p3
     while true; do
-        modo=$(_modo_actual)
+        modo=$(_modo_actual); pend=$(_modo_pendiente)
         perfil=$(cat /sys/firmware/acpi/platform_profile 2>/dev/null || echo '?')
         _en_ac && ac="conectado" || ac="batería"
-        [ "$modo" = Hybrid ]     && g1="●" || g1="○"
-        [ "$modo" = Integrated ] && g2="●" || g2="○"
+        [ "$pend" = Hybrid ]     && g1="●" || g1="○"
+        [ "$pend" = Integrated ] && g2="●" || g2="○"
         [ "$perfil" = quiet ]       && p1="●" || p1="○"
         [ "$perfil" = balanced ]    && p2="●" || p2="○"
         [ "$perfil" = performance ] && p3="●" || p3="○"
@@ -107,6 +114,7 @@ _wizard(){
         echo -e "  ${P}HORUS · ENERGÍA${N}"
         echo -e "  ${D}─────────────────────────────────────────────${N}"
         echo -e "  GPU ${C}${modo}${N}   ·   Perfil ${C}${perfil}${N}   ·   AC ${C}${ac}${N}"
+        [ "$modo" != "$pend" ] && echo -e "  ${Y}⟳ pendiente: ${pend} tras reiniciar${N}"
         echo ""
         echo -e "  ${P}GPU${N}  ${D}(requiere reinicio)${N}"
         echo -e "   ${g1} ${C}1${N}  Híbrida      ${D}dGPU disponible: juegos, CUDA${N}"
@@ -126,9 +134,9 @@ _wizard(){
         read -rsn1 -p "$(echo -e "  ${P}>${N} ")" opt
         echo ""
         case "$opt" in
-            1) if [ "$modo" = Hybrid ]; then ok "Ya estás en Híbrida."; _pausa
+            1) if [ "$pend" = Hybrid ]; then ok "Híbrida ya está seleccionada."; _pausa
                else _dgpu_set 0 && _ofrecer_reboot || _pausa; fi ;;
-            2) if [ "$modo" = Integrated ]; then ok "Ya estás en Integrada."; _pausa
+            2) if [ "$pend" = Integrated ]; then ok "Integrada ya está seleccionada."; _pausa
                else
                  warn "La dGPU quedará apagada: sin CUDA, sin PRIME offload."
                  read -rp "  ¿Continuar? [s/N] " r
@@ -170,11 +178,11 @@ case "${1:-}" in
         _curva performance "$CURVA_MAX" && ok "Ventiladores al 100%. Restaura: horus-power noheat off"
         ;;
     --actual|actual)
-        echo "Modo GPU:   $(_modo_actual)"
+        _act=$(_modo_actual); _pend=$(_modo_pendiente)
+        if [ "$_act" = "$_pend" ]; then echo "Modo GPU:   $_act"
+        else echo "Modo GPU:   $_act -> $_pend (tras reinicio)"; fi
         echo "Perfil:     $(cat /sys/firmware/acpi/platform_profile 2>/dev/null || echo '?')"
-        if nvidia-smi -q -d POWER &>/dev/null; then
-            echo "dGPU:       DESPIERTA ($(nvidia-smi --query-gpu=power.draw --format=csv,noheader 2>/dev/null))"
-        else echo "dGPU:       dormida (D3cold)"; fi
+        echo "dGPU:       $(_estado_dgpu)"
         _en_ac && echo "AC:         conectado" || echo "AC:         batería"
         ;;
     --help|-h) echo "uso: horus-power [silencio|equilibrado|rendimiento|gpu-off|gpu-on|noheat [off]|--actual]" ;;

@@ -32,7 +32,7 @@ in
     (mkWizard "theme"     "Horus Theme"      "Horus Tema"        "${foot} -e ${sw}/horus-theme")
     (mkWizard "privacy"   "Horus Privacy"    "Horus Privacidad"  "${foot} -e ${sw}/horus-privacy")
     (mkWizard "language"  "Horus Language"   "Horus Idioma"      "${foot} -e ${sw}/horus-language")
-    (mkWizard "power"     "Horus Power"      "Horus Energía"     (hold "horus-power --actual"))
+    (mkWizard "power"     "Horus Power"      "Horus Energía"     (hold "horus-power"))
     (mkWizard "kernel"    "Horus Kernel"     "Horus Kernel"      "${foot} -e ${sw}/horus-kernel")
     (mkWizard "status"    "Horus Status"     "Horus Estado"      (hold "horus-estado"))
     (mkWizard "update"    "Horus Update"     "Horus Update"      (hold "horus-update"))
