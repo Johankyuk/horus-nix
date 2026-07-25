@@ -25,13 +25,26 @@ echo "→ Rebuild del sistema..."
 if sudo nixos-rebuild switch --flake "$FLAKE"; then
     rm -f "$FLAKE/flake.lock.pre-update"
     if ! git -C "$FLAKE" diff --quiet flake.lock; then
-        git -C "$FLAKE" add flake.lock
+        # El switch reinicia NetworkManager/resolved: la red tarda en volver y el
+    # push falla por DNS. Esperar hasta 30s antes de intentar.
+    for i in $(seq 1 15); do
+        getent hosts github.com >/dev/null 2>&1 && break
+        sleep 2
+    done
+    git -C "$FLAKE" add flake.lock
         git -C "$FLAKE" commit -m "flake.lock: bump inputs ($(date +%F))"
         git -C "$FLAKE" push || echo "⚠ push falló (¿sin red/SSH?); commit local hecho"
     fi
 else
     echo ""
-    echo "✗ Rebuild falló con los inputs nuevos (probable regresión upstream)."
+    if nix build --no-link "$FLAKE#nixosConfigurations.$(hostname).config.system.build.toplevel" 2>/dev/null; then
+        echo "✗ El sistema COMPILA con los inputs nuevos, pero la ACTIVACION fallo."
+        echo "  Causa tipica: una unidad que no muere con SIGTERM y bloquea el switch."
+        echo "  Reintentar en unos dias NO lo arregla; revisa que unidad se atoro arriba."
+    else
+        echo "✗ El build fallo con los inputs nuevos (regresion upstream)."
+        echo "  Reintenta en unos dias."
+    fi
     echo "→ Revirtiendo lock al último que compilaba y reconstruyendo..."
     mv "$FLAKE/flake.lock.pre-update" "$FLAKE/flake.lock"
     sudo nixos-rebuild switch --flake "$FLAKE"
