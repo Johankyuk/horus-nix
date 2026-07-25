@@ -451,6 +451,22 @@ def gen_darkreader(tema, ts):
     did(f"Dark Reader -> {tema} (importa ~/.config/horus/darkreader.json en la extension)")
     _CAMBIOS[0] = True
 
+# ── horus-shell: paleta completa en JSON, la lee el QML en caliente ──
+def gen_horus_shell(tema, ts):
+    p = kt.construir(tema)
+    roles = ["mPrimary", "mOnPrimary", "mSecondary", "mTertiary", "mError",
+             "mSurface", "mOnSurface", "mSurfaceVariant", "mOnSurfaceVariant",
+             "mOutline", "mShadow", "mHover"]
+    out = json.dumps({r: p[r] for r in roles}, indent=2) + "\n"
+    dst = os.path.join(HOME, ".config", "horus", "palette.json")
+    if os.path.isfile(dst) and open(dst, encoding="utf-8").read() == out:
+        skip(f"horus-shell ya en '{tema}'."); return
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    _backup(dst, ts)
+    open(dst, "w", encoding="utf-8").write(out)
+    did(f"horus-shell -> {tema}")
+    _CAMBIOS[0] = True
+
 # ── Heroic: tema CSS sigue la paleta (requiere reiniciar Heroic) ──
 def gen_heroic(tema, ts):
     src = os.path.join(REPO_CFG, "heroic", "horus.css")   # fuente Morada
@@ -631,6 +647,7 @@ def aplicar(tema):
     gen_mangohud(tema, ts)     # ← overlay MangoHud con la paleta del tema
     gen_heroic(tema, ts)       # ← tema CSS de Heroic (aplica al reiniciarlo)
     patch_sddm(tema, ts)       # ← login SDDM via horus-sddm-apply (sudoers NOPASSWD)
+    gen_horus_shell(tema, ts)  # ← paleta JSON que lee la shell propia
     gen_darkreader(tema, ts)   # ← JSON para importar en Dark Reader (manual)
     patch_cursor(tema)         # cursor Bibata del tema (build en 2o plano si falta)
     gen_folders(tema, ts)      # ← carpetas Papirus recoloreadas (overlay Horus-Folders)
