@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+# horus-doctor — valida que el sistema Horus este realmente funcionando.
+#
+# Distinto de sus vecinos: horus-estado MUESTRA el estado actual y
+# horus-verify COMPARA el repo con ~/.config. Este dice si algo esta roto.
+# Salida 1 si hay fallos, 0 si todo pasa (usable en scripts).
+set -uo pipefail
+
+G=$'\e[0;32m'; Y=$'\e[1;33m'; R=$'\e[0;31m'; M=$'\e[0;35m'; N=$'\e[0m'
+FALLOS=0; AVISOS=0
+
+ok(){   printf "  ${G}[+]${N} %s\n" "$1"; }
+warn(){ printf "  ${Y}[i]${N} %s\n" "$1"; AVISOS=$((AVISOS+1)); }
+err(){  printf "  ${R}[x]${N} %s\n" "$1"; FALLOS=$((FALLOS+1)); }
+sec(){  printf "\n${M}%s${N}\n" "$1"; }
+
+# ── Servicios ────────────────────────────────────────────────
+sec "Servicios"
+for s in horus-shell horus-gpu-watch; do
+    case "$(systemctl --user is-active "$s" 2>/dev/null)" in
+        active) ok "$s activo" ;;
+        *)      err "$s NO activo (systemctl --user status $s)" ;;
+    esac
+done
+for s in asusd horus-kbd-boot horus-fan-curves; do
+    case "$(systemctl is-active "$s" 2>/dev/null)" in
+        active|activating) ok "$s activo" ;;
+        *)                 err "$s NO activo (systemctl status $s)" ;;
+    esac
+done
+if systemctl --user is-active horus-sync.timer >/dev/null 2>&1; then
+    ok "horus-sync.timer armado"
+else
+    warn "horus-sync.timer inactivo: los commits no se respaldan solos"
+fi
+
+# ── Teclado ──────────────────────────────────────────────────
+sec "Teclado"
+LED=/sys/class/leds/asus::kbd_backlight
+if [ -r "$LED/brightness" ]; then
+    ok "backlight enumerado ($(cat "$LED/brightness")/$(cat "$LED/max_brightness"))"
+else
+    err "$LED ausente: el OSD del teclado no puede leer nada"
+fi
+# El ITE5570 tarda en enumerar en arranque en frio (patron conocido del EC).
+if ls /dev/hidraw* >/dev/null 2>&1; then
+    ok "hidraw presente ($(ls /dev/hidraw* | wc -l) nodos)"
+else
+    err "sin nodos hidraw: horus-kbd-fx no va a encontrar el teclado"
+fi
+
+# ── Bateria ──────────────────────────────────────────────────
+sec "Bateria"
+TH=$(cat /sys/class/power_supply/BAT*/charge_control_end_threshold 2>/dev/null | head -1)
+case "$TH" in
+    80)  ok "tope de carga en 80%" ;;
+    "")  err "no se pudo leer el tope de carga" ;;
+    *)   warn "tope de carga en $TH% (se esperaba 80)" ;;
+esac
+
+# ── Hibernacion ──────────────────────────────────────────────
+sec "Hibernacion"
+RES=$(grep -o 'resume=[^ ]*' /proc/cmdline | cut -d= -f2-)
+if [ -z "$RES" ]; then
+    err "sin resume= en el cmdline: la hibernacion no puede volver"
+elif [ -e "$RES" ]; then
+    ok "resume device existe ($RES)"
+else
+    err "resume=$RES apunta a algo que no existe"
+fi
+# Los wakeups ACPI de mas abortan el S4 ("Wakeup event detected, rolling back").
+WK=$(grep -cE '^(GPP0|GPP5|GP11|XHC[0-9]|NHI0)\b.*enabled' /proc/acpi/wakeup 2>/dev/null)
+if [ "${WK:-0}" -eq 0 ]; then
+    ok "wakeups ACPI conflictivos desactivados"
+else
+    err "$WK wakeup(s) ACPI habilitados: la hibernacion va a hacer rollback"
+fi
+
+# ── GPU ──────────────────────────────────────────────────────
+sec "GPU"
+if lspci -nn 2>/dev/null | grep -qi 'VGA.*NVIDIA'; then
+    ok "dGPU enumerada"
+    PW=$(cat /sys/bus/pci/devices/0000:01:00.0/power_state 2>/dev/null)
+    [ -n "$PW" ] && ok "power_state: $PW"
+else
+    warn "dGPU no enumerada (apagada por firmware; horus-power gpu-on la reactiva)"
+fi
+
+# ── Tema ─────────────────────────────────────────────────────
+sec "Tema"
+PAL="$HOME/.config/horus/palette.json"
+if [ -f "$PAL" ] && python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$PAL" 2>/dev/null; then
+    ok "palette.json valido (lo lee horus-shell)"
+else
+    err "palette.json ausente o corrupto: la shell se queda en la paleta Morada"
+fi
+
+# ── Repos ────────────────────────────────────────────────────
+sec "Repos"
+if command -v horus-sync >/dev/null; then
+    horus-sync --check | sed 's/^/  /' || FALLOS=$((FALLOS+1))
+else
+    err "horus-sync no esta en el PATH"
+fi
+
+# ── Resumen ──────────────────────────────────────────────────
+printf "\n"
+if [ "$FALLOS" -eq 0 ] && [ "$AVISOS" -eq 0 ]; then
+    printf "${G}Todo en orden.${N}\n"
+elif [ "$FALLOS" -eq 0 ]; then
+    printf "${Y}$AVISOS aviso(s), nada roto.${N}\n"
+else
+    printf "${R}$FALLOS fallo(s)${N}, $AVISOS aviso(s).\n"
+fi
+exit $([ "$FALLOS" -eq 0 ] && echo 0 || echo 1)
