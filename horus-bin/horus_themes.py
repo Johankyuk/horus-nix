@@ -82,6 +82,9 @@ ANSI_FIJOS = {
     "redBright": "#ff7492", "greenBright": "#74f0b0", "yellowBright": "#ffd56a",
     "blueBright": "#9a8cf5", "magentaBright": "#cb52ec", "cyanBright": "#7fe4ec",
 }
+# Correccion 4: roles semanticos de UI anclados (mismo criterio que ANSI_FIJOS).
+# mError comparte el rojo del ANSI red: apagar/borrar se lee igual en todo tema.
+SEMANTICOS = {"mError": ANSI_FIJOS["red"]}
 ANSI_NEUTROS = {"black": "#2a1350", "white": "#9568d8",
                 "blackBright": "#482a92", "whiteBright": "#a872f2"}
 
@@ -122,6 +125,7 @@ def construir(nombre):
         pal.update({k: _rot(v, 0, gray=True) for k, v in ANSI_NEUTROS.items()})
         pal.update({k: _rot(v, 0, gray=True) for k, v in ANSI_FIJOS.items()})
         pal.update({role: _rot(hexc, 0, gray=True) for hexc, role in WALLPAPER.items()})
+        pal.update(SEMANTICOS)   # el rojo de error no se desatura ni en Gris
         return pal
 
     central, dL, fC = TEMAS[nombre]
@@ -129,6 +133,7 @@ def construir(nombre):
     pal = {k: _rot(v, dh, dL=dL, fC=fC) for k, v in MORADA.items()}
     pal.update({k: _rot(v, dh, dL=dL, fC=fC) for k, v in ANSI_NEUTROS.items()})  # neutros se tintan
     pal.update(ANSI_FIJOS)                                                        # semanticos anclados
+    pal.update(SEMANTICOS)                                                        # mError anclado
     pal.update({role: _rot(hexc, dh, dL=dL, fC=fC)                                # wallpaper acompaña
                 for hexc, role in WALLPAPER.items()})
     return pal
