@@ -6,7 +6,7 @@
     environment.systemPackages = with pkgs; [
       qt6Packages.qt6ct papirus-icon-theme bibata-cursors catppuccin-gtk
       imagemagick xcursorgen xcur2png       # generacion cursor Bibata-Horus
-      libnotify wlsunset wob wl-mirror
+      libnotify wlsunset wl-mirror
     ];
     xdg.portal = {
       enable = true;

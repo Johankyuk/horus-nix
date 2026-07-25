@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Lanza la shell propia de Horus (quickshell sobre niri).
+#
+# Durante el desarrollo el QML vive en ~/horus-shell (repo aparte, editable en
+# caliente). Cuando la shell se estabilice, pasa a ser input del flake y aqui
+# solo cambia el destino.
+set -euo pipefail
+exec qs -p "${HORUS_SHELL_PATH:-$HOME/horus-shell/shell.qml}"
