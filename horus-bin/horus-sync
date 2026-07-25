@@ -13,18 +13,21 @@ err(){ echo -e "${R}[x]${N} $1"; }; log(){ echo -e "${P}[sync]${N} $1"; }
 REPOS=("$HOME/horus-nix")
 [ -d "$HOME/Horus-Project/.git" ] && REPOS+=("$HOME/Horus-Project")
 [ -d "$HOME/horus-shell/.git" ] && REPOS+=("$HOME/horus-shell")
-[ -d "$HOME/horus-shell/.git" ] && REPOS+=("$HOME/horus-shell")
 
 
 
 _sucios(){ git -C "$1" status --short | wc -l; }
 _pendientes(){ git -C "$1" log --oneline @{u}.. 2>/dev/null | wc -l; }
+_sin_upstream(){ ! git -C "$1" rev-parse --abbrev-ref "@{u}" >/dev/null 2>&1; }
 
 _check(){
     local hay=0 r n s p
     for r in "${REPOS[@]}"; do
         n=$(basename "$r"); s=$(_sucios "$r"); p=$(_pendientes "$r")
-        if [ "$s" = 0 ] && [ "$p" = 0 ]; then
+        if _sin_upstream "$r"; then
+            hay=1
+            err "$n: sin upstream — NO se esta respaldando"
+        elif [ "$s" = 0 ] && [ "$p" = 0 ]; then
             ok "$n: sincronizado"
         else
             hay=1
@@ -40,6 +43,10 @@ _check(){
 # depende de getent (que no esta en el PATH de la unidad) y mide lo que importa.
 _push(){ # $1 = repo
     local n salida; n=$(basename "$1")
+    if _sin_upstream "$1"; then
+        err "$n: sin upstream — nada que empujar, el repo no esta respaldado."
+        return 1
+    fi
     [ "$(_pendientes "$1")" = 0 ] && return 0
     for intento in 1 2 3 4 5; do
         if salida=$(git -C "$1" push 2>&1); then
