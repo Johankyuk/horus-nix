@@ -43,6 +43,28 @@ in
   };
   # Vigilante PRIME: en AC toda app nueva nace en la dGPU; en bateria, iGPU.
   # Guard interno: si no hay NVIDIA enumerada (dgpu_disable), se queda en iGPU.
+  # Respaldo automatico: SOLO empuja commits ya hechos. No commitea nada por
+  # su cuenta (auto-commitear a media edicion ensucia el historial), pero un
+  # commit local sin subir es riesgo puro, y eso si lo resuelve.
+  systemd.user.services.horus-sync = {
+    description = "Empuja commits pendientes de los repos Horus a GitHub";
+    path = [ horus-tools pkgs.git pkgs.openssh pkgs.coreutils pkgs.gnugrep ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${horus-tools}/bin/horus-sync --push";
+    };
+  };
+  systemd.user.timers.horus-sync = {
+    description = "Respaldo diario de los repos Horus";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnStartupSec = "10min";
+      OnUnitActiveSec = "1d";
+      Persistent = true;
+      RandomizedDelaySec = "20min";
+    };
+  };
+
   systemd.user.services.horus-gpu-watch = {
     description = "Vigilante de perfil GPU (PRIME por AC/bateria)";
     wantedBy = [ "graphical-session.target" ];

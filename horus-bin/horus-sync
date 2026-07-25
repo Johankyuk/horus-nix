@@ -1,4 +1,73 @@
-#!/bin/bash
-# horus-sync: vuelca tu ~/.config actual de vuelta al repo, para commitear
-# Atajo de: horus-start --capturar
-exec horus-start --capturar "$@"
+#!/usr/bin/env bash
+# horus-sync — mantiene los repos de Horus respaldados en GitHub.
+#
+#   horus-sync              commitea lo sucio y empuja ambos repos.
+#   horus-sync "mensaje"    igual, con mensaje propio.
+#   horus-sync --check      solo reporta (no escribe nada). Codigo 1 si hay pendientes.
+#   horus-sync --push       solo empuja commits ya hechos; no commitea.
+set -uo pipefail
+P='\033[0;35m'; G='\033[0;32m'; Y='\033[1;33m'; R='\033[0;31m'; N='\033[0m'
+ok(){ echo -e "${G}[+]${N} $1"; }; warn(){ echo -e "${Y}[i]${N} $1"; }
+err(){ echo -e "${R}[x]${N} $1"; }; log(){ echo -e "${P}[sync]${N} $1"; }
+
+REPOS=("$HOME/horus-nix")
+[ -d "$HOME/Horus-Project/.git" ] && REPOS+=("$HOME/Horus-Project")
+
+# Un rebuild reinicia NetworkManager/resolved: el DNS tarda en volver y el push
+# falla por nombre. Esperar hasta 30s antes de rendirse.
+_espera_red(){
+    for _ in $(seq 1 15); do
+        getent hosts github.com >/dev/null 2>&1 && return 0
+        sleep 2
+    done
+    return 1
+}
+
+_sucios(){ git -C "$1" status --short | wc -l; }
+_pendientes(){ git -C "$1" log --oneline @{u}.. 2>/dev/null | wc -l; }
+
+_check(){
+    local hay=0 r n s p
+    for r in "${REPOS[@]}"; do
+        n=$(basename "$r"); s=$(_sucios "$r"); p=$(_pendientes "$r")
+        if [ "$s" = 0 ] && [ "$p" = 0 ]; then
+            ok "$n: sincronizado"
+        else
+            hay=1
+            [ "$s" != 0 ] && warn "$n: $s archivo(s) sin commitear"
+            [ "$p" != 0 ] && warn "$n: $p commit(s) sin subir"
+        fi
+    done
+    return $hay
+}
+
+_push(){ # $1 = repo
+    local n; n=$(basename "$1")
+    [ "$(_pendientes "$1")" = 0 ] && return 0
+    if ! _espera_red; then err "$n: sin DNS; commits quedan locales."; return 1; fi
+    if git -C "$1" push -q; then ok "$n: subido a GitHub."
+    else err "$n: el push fallo; los commits siguen locales."; return 1; fi
+}
+
+_sync(){ # $1 = mensaje
+    local msg="$1" r n rc=0
+    for r in "${REPOS[@]}"; do
+        n=$(basename "$r")
+        if [ "$(_sucios "$r")" != 0 ]; then
+            git -C "$r" add -A
+            git -C "$r" commit -q -m "$msg" && ok "$n: commit creado."
+        fi
+        _push "$r" || rc=1
+    done
+    return $rc
+}
+
+case "${1:-}" in
+    --check) _check ;;
+    --push)  rc=0; for r in "${REPOS[@]}"; do _push "$r" || rc=1; done; exit $rc ;;
+    --help|-h) sed -n '3,8p' "$0" | sed 's/^# \?//' ;;
+    "")  log "Sincronizando repos de Horus..."
+         _sync "horus-sync: respaldo $(date '+%F %H:%M')" ;;
+    *)   log "Sincronizando repos de Horus..."
+         _sync "$1" ;;
+esac
