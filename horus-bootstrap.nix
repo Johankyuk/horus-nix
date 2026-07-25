@@ -55,6 +55,10 @@ in
         git -C "$DEST" reset --hard "origin/$REF"
       else
         git clone --depth 1 --branch "$REF" "$REPO_URL" "$DEST" || exit 0
+        # El clon anonimo va por HTTPS; el remote queda en SSH para que el push
+        # funcione en la maquina de quien mantiene el repo. Si no hay llave, el
+        # clon ya termino: solo fallaria un push, que un usuario ajeno no hace.
+        git -C "$DEST" remote set-url origin git@github.com:Johankyuk/Horus-Project.git 2>/dev/null || true
       fi
 
       mkdir -p "$HOME/.config/horus"
@@ -77,7 +81,18 @@ in
       # Portabilidad del wallpaper: reescribir la ruta al $HOME real de quien instala.
       NOCTA="$HOME/.config/noctalia/settings.json"
       if [ -f "$NOCTA" ]; then
-        ${pkgs.python3}/bin/python3 -c "import sys,json; f=sys.argv[1]; wd=sys.argv[2]; d=json.load(open(f)); d.setdefault('wallpaper',{}); d['wallpaper']['directory']=wd; json.dump(d,open(f,'w'),indent=2)" "$NOCTA" "$HOME/Horus-Project/Wallpapers" 2>/dev/null || true
+        ${pkgs.python3}/bin/python3 - "$NOCTA" "$HOME/Horus-Project" <<'PYPORT' 2>/dev/null || true
+import sys, json
+f, base = sys.argv[1], sys.argv[2]
+d = json.load(open(f))
+# Portabilidad: el settings.json del repo trae rutas del $HOME de quien lo
+# versiono. Se reescriben al $HOME real de quien instala.
+d.setdefault("wallpaper", {})["directory"] = base + "/Wallpapers"
+av = d.get("general", {}).get("avatarImage", "")
+if av.startswith("/home/"):
+    d["general"]["avatarImage"] = base + "/PFP/" + av.rsplit("/", 1)[1]
+json.dump(d, open(f, "w"), indent=2)
+PYPORT
       fi
 
       # fastfetch: su config vive en branding/, no en config/
