@@ -13,15 +13,7 @@ err(){ echo -e "${R}[x]${N} $1"; }; log(){ echo -e "${P}[sync]${N} $1"; }
 REPOS=("$HOME/horus-nix")
 [ -d "$HOME/Horus-Project/.git" ] && REPOS+=("$HOME/Horus-Project")
 
-# Un rebuild reinicia NetworkManager/resolved: el DNS tarda en volver y el push
-# falla por nombre. Esperar hasta 30s antes de rendirse.
-_espera_red(){
-    for _ in $(seq 1 15); do
-        getent hosts github.com >/dev/null 2>&1 && return 0
-        sleep 2
-    done
-    return 1
-}
+
 
 _sucios(){ git -C "$1" status --short | wc -l; }
 _pendientes(){ git -C "$1" log --oneline @{u}.. 2>/dev/null | wc -l; }
@@ -41,12 +33,23 @@ _check(){
     return $hay
 }
 
+# Un rebuild reinicia NetworkManager/resolved y la red tarda en volver, asi que
+# el push se reintenta. Se prueba el push directo en vez de sondear el DNS: no
+# depende de getent (que no esta en el PATH de la unidad) y mide lo que importa.
 _push(){ # $1 = repo
-    local n; n=$(basename "$1")
+    local n salida; n=$(basename "$1")
     [ "$(_pendientes "$1")" = 0 ] && return 0
-    if ! _espera_red; then err "$n: sin DNS; commits quedan locales."; return 1; fi
-    if git -C "$1" push -q; then ok "$n: subido a GitHub."
-    else err "$n: el push fallo; los commits siguen locales."; return 1; fi
+    for intento in 1 2 3 4 5; do
+        if salida=$(git -C "$1" push 2>&1); then
+            ok "$n: subido a GitHub."
+            return 0
+        fi
+        [ "$intento" = 5 ] && break
+        sleep 6
+    done
+    err "$n: el push fallo tras 5 intentos; los commits siguen locales."
+    echo "$salida" | tail -2
+    return 1
 }
 
 _sync(){ # $1 = mensaje
