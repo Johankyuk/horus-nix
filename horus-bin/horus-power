@@ -28,7 +28,12 @@ warn(){ echo -e "${Y}[i]${N} $1"; }; err(){ echo -e "${R}[x]${N} $1"; }
 # Solo la curva de emergencia: quiet/balanced son declarativas y performance
 # es propiedad de horus-gpu-watch. No reintroducir constantes por perfil aquí.
 CURVA_MAX="20c:100%,40c:100%,55c:100%,65c:100%,75c:100%,85c:100%,90c:100%,95c:100%"
-DGPU=/sys/devices/platform/asus-nb-wmi/dgpu_disable
+ARMOURY=/sys/class/firmware-attributes/asus-armoury/attributes/dgpu_disable/current_value
+LEGACY=/sys/devices/platform/asus-nb-wmi/dgpu_disable
+PENDING=/sys/class/firmware-attributes/asus-armoury/attributes/pending_reboot
+# asus-armoury es la ruta canonica en kernels recientes; asus-nb-wmi es el
+# fallback historico. Ambas hablan con el mismo metodo WMI.
+if [ -e "$ARMOURY" ]; then DGPU="$ARMOURY"; else DGPU="$LEGACY"; fi
 
 _curva(){
     command -v asusctl &>/dev/null || { warn "asusctl no disponible."; return 1; }
@@ -45,14 +50,19 @@ _en_ac(){ for p in /sys/class/power_supply/*/online; do
 
 # ── dGPU por firmware (asus-nb-wmi). Sustituye a supergfxctl del stack Arch ──
 _dgpu_set(){ # $1 = 1 apagar | 0 encender
-    [ -e "$DGPU" ] || { err "No existe $DGPU."; return 1; }
+    [ -e "$DGPU" ] || { err "No existe ningun nodo dgpu_disable."; return 1; }
     local cur; cur=$(cat "$DGPU" 2>/dev/null)
-    [ "$cur" = "$1" ] && { ok "La dGPU ya está así (dgpu_disable=$cur)."; return 0; }
-    if echo "$1" | sudo tee "$DGPU" >/dev/null 2>&1; then
-        ok "dgpu_disable=$1 escrito. REINICIA para que aplique."
+    [ "$cur" = "$1" ] && { ok "La dGPU ya esta asi (dgpu_disable=$cur)."; return 0; }
+    echo "$1" | sudo tee "$DGPU" >/dev/null 2>&1
+    # No confiar en el rc de tee: el firmware puede aceptar la escritura y
+    # descartarla. La verdad es releer el nodo.
+    local post; post=$(cat "$DGPU" 2>/dev/null)
+    if [ "$post" = "$1" ]; then
+        ok "dgpu_disable=$1 aplicado. REINICIA para que surta efecto."
+        [ -r "$PENDING" ] && log "pending_reboot: $(cat "$PENDING" 2>/dev/null)"
     else
-        err "El firmware rechazó la escritura (dgpu_disable sigue en $cur)."
-        warn "Suele fallar con la dGPU en uso: cierra lo que la ocupe y reintenta."
+        err "El firmware rechazo el cambio (sigue en $post)."
+        warn "Suele pasar con la dGPU en uso. Nodo: $DGPU"
         return 1
     fi
 }
