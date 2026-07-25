@@ -98,7 +98,7 @@ fi
 # ── Repos ────────────────────────────────────────────────────
 sec "Repos"
 if command -v horus-sync >/dev/null; then
-    horus-sync --check | sed 's/^/  /' || FALLOS=$((FALLOS+1))
+    horus-sync --check | sed 's/^/  /' || AVISOS=$((AVISOS+1))
 else
     err "horus-sync no esta en el PATH"
 fi
