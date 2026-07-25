@@ -78,7 +78,8 @@ fi
 
 # ── GPU ──────────────────────────────────────────────────────
 sec "GPU"
-if lspci -nn 2>/dev/null | grep -qi 'VGA.*NVIDIA'; then
+LSPCI=$(lspci -nn 2>/dev/null)
+if printf '%s' "$LSPCI" | grep -qi 'VGA.*NVIDIA'; then
     ok "dGPU enumerada"
     PW=$(cat /sys/bus/pci/devices/0000:01:00.0/power_state 2>/dev/null)
     [ -n "$PW" ] && ok "power_state: $PW"
