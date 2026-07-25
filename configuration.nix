@@ -2,6 +2,7 @@
 
 {
   imports = [
+    ./modules/nix-gc.nix
     ./modules/fan-curves.nix
     ./modules/clear-fb.nix
     ./modules/kernel.nix
