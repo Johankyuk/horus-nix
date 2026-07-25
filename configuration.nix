@@ -194,6 +194,18 @@
       flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo || exit 0
       flatpak install -y --noninteractive --user flathub \
         org.vinegarhq.Sober io.mrarm.mcpelauncher || true
+      flatpak install -y --noninteractive --user flathub \
+        org.freedesktop.Platform.VulkanLayer.MangoHud//25.08 || true
+      # Overrides de Sober (eran imperativos: se perdian en instalacion limpia).
+      # El sandbox tiene su propio XDG_CONFIG_HOME, asi que sin el filesystem
+      # y el CONFIGFILE, MangoHud arranca con sus colores por defecto en vez
+      # de los del tema. Solo lectura: la config la escribe horus-theme.
+      flatpak override --user \
+        --device=input \
+        --env=MANGOHUD=1 \
+        --filesystem=xdg-config/MangoHud:ro \
+        --env=MANGOHUD_CONFIGFILE="$HOME/.config/MangoHud/MangoHud.conf" \
+        org.vinegarhq.Sober || true
     '';
   };
   # Config declarativa de Sober: merge de llaves Horus sobre el config.json vivo
