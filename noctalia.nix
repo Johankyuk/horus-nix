@@ -7,8 +7,8 @@ let
   noctalia-src = pkgs.fetchFromGitHub {
     owner = "Johankyuk";
     repo = "noctalia";
-    rev = "2a18ba0e55f5e496015e12872a145f27bb5dfd90";   # rama horus (v4.7.7 + parches propios)
-    hash = "sha256-xgTBFzoNiD3SOo4cRSn9ITbEgUQwbj+vvnDD3rGNyAs=";
+    rev = "309f2d44315ed62098cfc2d344ef0fe6491199f1";   # rama horus (v4.7.7 + parches propios)
+    hash = "sha256-ldGmqAfTe5asDuM4d5goqEZiImiAJvrfhWYqaizyZFc=";
   };
   noctalia-pkg = pkgs.stdenvNoCC.mkDerivation {
     pname = "noctalia-shell";
