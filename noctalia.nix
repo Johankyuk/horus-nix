@@ -7,27 +7,15 @@ let
   noctalia-src = pkgs.fetchFromGitHub {
     owner = "Johankyuk";
     repo = "noctalia";
-    rev = "3abfa1fc09b62dc4cdeeb7b787886f075696f0b7";   # commit exacto de v4.7.7 — inmutable
-    hash = "sha256-QszLpoDPD7JEv8B/w1U2u1ksBw/CYBDmwUTLhJrekF0=";
+    rev = "2a18ba0e55f5e496015e12872a145f27bb5dfd90";   # rama horus (v4.7.7 + parches propios)
+    hash = "sha256-xgTBFzoNiD3SOo4cRSn9ITbEgUQwbj+vvnDD3rGNyAs=";
   };
   noctalia-pkg = pkgs.stdenvNoCC.mkDerivation {
     pname = "noctalia-shell";
     version = "4.7.7-horus";
     src = noctalia-src;
-    # Toasts de perfil de energía en español + fix del icono (antes:
-    # horus-noctalia-es + hook de pacman en Arch; aquí horneado en el paquete).
-    # Icono: upstream deriva la clave del NOMBRE del perfil; con nombres
-    # traducidos la clave no existe y cae a la calavera -> getIcon() siempre.
-    postPatch = ''
-      F=Services/Power/PowerProfileService.qml
-      if [ -f "$F" ]; then
-        substituteInPlace "$F" \
-          --replace-warn 'profileName.toLowerCase().replace(" ", "")' 'root.getIcon()' \
-          --replace-warn 'return "Performance";' 'return "Rendimiento";' \
-          --replace-warn 'return "Balanced";' 'return "Equilibrado";' \
-          --replace-warn 'return "Power saver";' 'return "Ahorro de energía";'
-      fi
-    '';
+    # Los parches (perfiles en español, fix del icono) viven en la rama horus
+    # del fork, no aquí: en git son explícitos y no se saltan en silencio.
     # Sin compilación: solo copiar la config QML al store
     installPhase = ''
       mkdir -p $out
