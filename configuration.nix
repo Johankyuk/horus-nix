@@ -5,6 +5,7 @@
     ./modules/nix-gc.nix
     ./modules/fan-curves.nix
     ./modules/clear-fb.nix
+    ./modules/pam-lock.nix
     ./modules/kernel.nix
     ./noctalia.nix
     ./horus-tools.nix
@@ -36,7 +37,7 @@
     # Cerrar tapa NO suspende; solo se apaga la pantalla (DPMS lo maneja).
     HandleLidSwitch = "ignore";
     HandleLidSwitchExternalPower = "ignore";
-    HandlePowerKey = "ignore";
+    HandlePowerKey = "lock";
     HandlePowerKeyLongPress = "poweroff";
   };
 
@@ -151,7 +152,6 @@
     papirus-icon-theme
 
     # Gaming
-    mangohud
     heroic
     protonup-qt
 
